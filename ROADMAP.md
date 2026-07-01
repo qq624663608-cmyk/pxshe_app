@@ -251,3 +251,12 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 ---
 
 *最后更新: 2026-07-01 — 阶段 1 收尾中, 18 维度 39% 覆盖*
+
+## v0.1.0 (阶段 1 收尾)
+
+- AGENTS.md 53+ 宪法
+- 18 docs + 10 ADR
+- tool/ 11 脚本
+- ApiClient + AppColors + ErrorHandler
+- LoginPage 真实 UI
+
