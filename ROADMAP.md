@@ -260,3 +260,5 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 - ApiClient + AppColors + ErrorHandler
 - LoginPage 真实 UI
 
+
+- [x] pre-commit 钩子启用
