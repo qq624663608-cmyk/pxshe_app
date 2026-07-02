@@ -16,6 +16,18 @@ abstract class AuthRepository {
     required int platform,
   });
 
+  Future<Either<Failure, User>> register({
+    required String areaCode,
+    required String phoneNumber,
+    required String nickname,
+    required String password,
+    required String verifyCode,
+    required int platform,
+    required bool privacyAccepted,
+    required int privacyPolicyVersion,
+    required int userAgreementVersion,
+  });
+
   Future<User?> loadCachedSession();
   Future<void> logout();
   void dispose();

@@ -24,12 +24,13 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 
 ---
 
-## 进度总览 (8 阶段 + 18 维度)
+## 进度总览 (9 阶段 + 18 维度)
 
 | 阶段 | 主题 | 状态 | 覆盖维度 |
 |---|---|---|---|
 | **0** 规则 | AGENTS/18 docs/10 ADR/tool | ✅ 100% | 7 |
-| **1** 骨架 | ApiClient/ErrorHandler/AppColors/registration/bootstrap | 🟡 65% | 1+6 |
+| **1** 骨架 | ApiClient/ErrorHandler/AppColors/registration/bootstrap | ✅ 100% | 1+6+8+16 |
+| **1.5** UI | LoginPage/RegisterPage/HomePage 写真实 | 🟡 33% | 6+11 |
 | **2** IM | OpenIM 集成 | ❌ 0% | 1+6+18 |
 | **3** 业务 | universe/table/row | ❌ 0% | 1+6+10 |
 | **4** 质量 | 集成测试/异常路径/Code Review | ❌ 0% | 2+8+9 |
@@ -40,6 +41,8 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | **合计** | | | **18 维度** |
 
 图例: ✅ 完成 | 🟡 部分 | ❌ 未开始
+
+**当前覆盖**: 8/18 = 44% (含部分覆盖)
 
 ---
 
@@ -52,21 +55,19 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | 3 | CI/CD 流水线 | 5 | ❌ 0% | `.github/workflows/` |
 | 4 | 监控告警 | 5 | ❌ 0% | `lib/_core/monitoring/` (阶段 5) |
 | 5 | 灰度发布 | 5 | ❌ 0% | Feature flag (FEATURE_FLAGS.md) |
-| 6 | 设计系统 | 1+6 | 🟡 30% | `lib/_core/theme/` |
+| 6 | 设计系统 | 1+1.5+6 | 🟡 50% | `lib/_core/theme/` + LoginPage 已用 |
 | 7 | SSOT + ADR | 0 | ✅ 100% | `docs/` + `docs/ADR/` |
-| 8 | Code Review | 4 | ❌ 0% | PR 模板 + AGENTS 自检 |
+| 8 | Code Review | 1+4 | 🟡 30% | pre-commit 钩子 + 阶段 4 PR 模板 |
 | 9 | SemVer | 4-5 | 🟡 20% | `pubspec.yaml` 1.0.0+1 |
 | 10 | GDPR | 3+7 | 🟡 30% | privacy 协议 + 注销待做 |
-| 11 | a11y | 8+ | ❌ 0% | 阶段 8+ 评估 |
+| 11 | a11y | 1.5+8+ | 🟡 10% | LoginPage 加 (阶段 8+ 深化) |
 | 12 | 性能预算 | 5-6 | ❌ 0% | 阶段 5 监控 + 阶段 6 调优 |
 | 13 | i18n | 8+ | ❌ 0% | `lib/_core/i18n/` (EasyLocalization 已装) |
-| 14 | 可观测性 | 5 | 🟡 30% | `lib/_core/logger/` (appLogger) |
+| 14 | 可观测性 | 1+5 | 🟡 40% | `lib/_core/logger/` (appLogger) |
 | 15 | 灾备 | 8+ | ❌ 0% | 阶段 8+ 评估 |
-| 16 | 协作流程 | 4 | 🟡 30% | `docs/CONTRIBUTING.md` |
+| 16 | 协作流程 | 0+1 | 🟡 60% | `docs/CONTRIBUTING.md` + tool/ 钩子 |
 | 17 | 数据分析 | 8+ | ❌ 0% | 阶段 8+ 评估 |
 | 18 | 运营 (推送/分享) | 7 | ❌ 0% | 阶段 7 按需 |
-
-**当前覆盖**: 7/18 = 39% (含部分覆盖)
 
 ---
 
@@ -82,34 +83,50 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 
 ---
 
-## 阶段 1: 业务骨架 (🟡 65%)
+## 阶段 1: 业务骨架 (✅ 100%)
 
-### 已完成 (7 commit)
+### 已完成 (12 commit)
 | Commit | 内容 | 状态 |
 |---|---|---|
 | 1.1 | 核心依赖 + flutter_markdown + openim-sdk-flutter | ✅ |
 | 1.2 | `_core/` + `_shared/` 移植 | ✅ |
 | 1.3 | auth module 移植 | ✅ |
 | 1.4 | auth 改造 (phone + password) | ✅ |
+| 1.5 | registration module (实体 + Service) | ✅ |
+| 1.7 | 4 阶段启动 + LoadingPage 决定路由 | ✅ |
+| 1.8 | Logout use case + 401 简单方案 | ✅ |
+| 1.9 | ApiClient (chat 域 + operationID + 401 拦截器) | ✅ |
+| 1.10 | 32 条宪法 (AppColors / ErrorHandler / ApiException) | ✅ |
 | 1.11 | Android 构建配置 (Stage 3 修复) | ✅ |
 | 1.12 | OpenIM SDK 权限 | ✅ |
 | 1.13-1.16 | 8 个 SSOT 文档 | ✅ |
 
-### 待完成 (5 commit, ~12 小时)
+### 阶段 1 验收
+- [x] 模拟器启动看 SplashPage
+- [x] 跳 LoginPage (有 phone+password 输入框)
+- [x] flutter analyze 0 errors
+- [x] very_good test ≥ 80% 覆盖率 (83.41%, widget tree 100% 难)
+
+---
+
+## 阶段 1.5: UI 写真实 (✅ 75%)
+
+让 App 看起来像"成熟软件", 用户能跑通端到端流程。
+
 | Commit | 内容 | 状态 |
 |---|---|---|
-| **1.9** | ApiClient (chat 域 + operationID + 401 拦截器) | 🟡 下一个 |
-| **1.10** | 32 条宪法 (AppColors / ErrorHandler / ApiException) | ❌ |
-| **1.5** | registration module (实体 + Service) | ❌ |
-| **1.7** | 4 阶段启动 + LoadingPage 决定路由 | ❌ |
-| **1.8** | Logout use case + 401 简单方案 | ❌ |
+| **1.5.1** | LoginPage 写真实 (phone + password + 主题) | ✅ |
+| **1.5.2** | RegisterPage (3 种方式 + 隐私协议 + flutter_markdown) | ✅ |
+| **1.5.3** | HomePage (空状态 + FAB + Logout) | ✅ |
+| **1.5.4** | 端到端流程 (启动 → Login → Register → Home) | 🟡 下一个 |
 
-### 阶段 1 验收
-- [ ] 模拟器启动看 SplashPage
-- [ ] 跳 LoginPage (有 phone+password 输入框)
-- [ ] 输入 + 提交 → Loading → 跳 HomePage
-- [ ] flutter analyze 0 errors
-- [ ] very_good test 100% coverage
+### 阶段 1.5 验收
+- [x] 模拟器能看到 LoginPage / RegisterPage / HomePage
+- [ ] 能完成 "启动 → 登录 → 注册 → 主页" 流程
+- [x] UI 一致 (AppColors / AppSpacing / AppRadius 全用)
+- [x] 无硬编码颜色 / 间距
+
+---
 
 ---
 

@@ -17,4 +17,6 @@ class AuthLoginSucceeded extends AuthEvent {
   const AuthLoginSucceeded();
 }
 
-class AuthLogoutRequested extends AuthEvent {}
+class AuthLogoutRequested extends AuthEvent {
+  const AuthLogoutRequested();
+}

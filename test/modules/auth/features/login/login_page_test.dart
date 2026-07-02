@@ -43,6 +43,20 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   void dispose() {}
+
+  @override
+  Future<Either<Failure, User>> register({
+    required String areaCode,
+    required String phoneNumber,
+    required String nickname,
+    required String password,
+    required String verifyCode,
+    required int platform,
+    required bool privacyAccepted,
+    required int privacyPolicyVersion,
+    required int userAgreementVersion,
+  }) async =>
+      _result;
 }
 
 void main() {

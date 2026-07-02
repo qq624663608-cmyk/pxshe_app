@@ -106,6 +106,70 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, User>> register({
+    required String areaCode,
+    required String phoneNumber,
+    required String nickname,
+    required String password,
+    required String verifyCode,
+    required int platform,
+    required bool privacyAccepted,
+    required int privacyPolicyVersion,
+    required int userAgreementVersion,
+  }) async {
+    try {
+      if (!await networkInfo.isConnected()) {
+        return Left(ConnectionFailure());
+      }
+
+      final res = await dio.post<dynamic>(
+        '/account/register',
+        data: {
+          'user': {
+            'phoneNumber': phoneNumber,
+            'areaCode': areaCode,
+            'nickname': nickname,
+            'password': password,
+          },
+          'verifyCode': verifyCode,
+          'platform': platform,
+          'autoLogin': true,
+          'privacyAccepted': privacyAccepted,
+          'privacyPolicyVersion': privacyPolicyVersion,
+          'userAgreementVersion': userAgreementVersion,
+        },
+      );
+
+      final data = Map<String, dynamic>.from(res.data as Map);
+      if (data['errorCode'] != 0) {
+        return Left(ServerFailure(data['errMsg']?.toString() ?? 'Registration failed'));
+      }
+
+      final payload = Map<String, dynamic>.from(data['data'] as Map);
+      _chatToken = payload['chatToken'] as String;
+      _imToken = payload['imToken'] as String?;
+      _userId = payload['userID'] as String;
+
+      await _cacheTokens(chatToken: _chatToken!, imToken: _imToken);
+
+      final user = UserModel(
+        id: _userId!,
+        nickname: nickname,
+        phoneNumber: phoneNumber,
+        areaCode: areaCode,
+      );
+      await _cacheUser(user);
+      _userController.add(user);
+
+      return Right(user);
+    } on DioException catch (e) {
+      return Left(ServerFailure(ApiException.fromDioError(e).message ?? '网络错误'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<User?> loadCachedSession() async {
     final cached = await _getCachedUser();
     if (cached != null) {

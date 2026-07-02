@@ -28,6 +28,30 @@ class AuthUsecases {
     );
   }
 
+  Future<Either<Failure, User>> register({
+    required String areaCode,
+    required String phoneNumber,
+    required String nickname,
+    required String password,
+    required String verifyCode,
+    required int platform,
+    required bool privacyAccepted,
+    required int privacyPolicyVersion,
+    required int userAgreementVersion,
+  }) {
+    return _authRepository.register(
+      areaCode: areaCode,
+      phoneNumber: phoneNumber,
+      nickname: nickname,
+      password: password,
+      verifyCode: verifyCode,
+      platform: platform,
+      privacyAccepted: privacyAccepted,
+      privacyPolicyVersion: privacyPolicyVersion,
+      userAgreementVersion: userAgreementVersion,
+    );
+  }
+
   Future<User?> loadCachedSession() => _authRepository.loadCachedSession();
 
   Future<void> logout() => _authRepository.logout();

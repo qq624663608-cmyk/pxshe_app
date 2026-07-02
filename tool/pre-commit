@@ -1,5 +1,8 @@
-@echo off
-:: Git on Windows 钩子:调 PowerShell 版
-:: 启用:git config core.hooksPath tool
-powershell -ExecutionPolicy Bypass -File "%~dp0pre-commit.ps1"
-exit /b %ERRORLEVEL%
+#!/bin/sh
+# Unix-style pre-commit hook (for Git Bash on Windows)
+# Calls PowerShell pre-commit.ps1
+echo "[pre-commit] running (Git Bash wrapper)..."
+powershell -ExecutionPolicy Bypass -File "$(dirname "$0")/pre-commit.ps1"
+RC=$?
+echo "[pre-commit] exit $RC"
+exit $RC

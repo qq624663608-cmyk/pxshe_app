@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../_core/app_router.dart';
+import '../_core/di.dart';
 import '../_core/layout/adaptive_layout/adaptive_destination.dart';
+import '../modules/auth/domain/auth_repository.dart';
 import 'features/error/error_401_page.dart';
 import 'features/landing/page/landing_page_loader.dart';
 import 'features/settings/page/settings_page.dart';
@@ -61,7 +63,7 @@ List<GoRoute> sharedRoutes() {
       path: "/home",
       redirect: authRouteGuard,
       pageBuilder: (context, state) => FadeTransitionPage(
-        child: const HomePage(),
+        child: HomePage(repository: di<AuthRepository>()),
       ),
     ),
     GoRoute(
