@@ -1,207 +1,236 @@
 # docs/ERROR_HANDLING.md — 错误码详细
 
-> **本文件是错误处理 SSOT。**
-> 客户端唯一错误入口: `ErrorHandler.handle(context, e)`。
+> **本文件是 pxshe_app 错误码 SSOT (Single Source of Truth)。**
+> 与后端 `F:\wx\pxshe_app\docs\ERROR_CODES.md` 一一对应。
+> 后端 errCode 与前端 ErrorKey 一一映射, 改这个文件要同步通知后端。
 
 ---
 
-## 1. 错误码分类 (6 段)
+## 1. 错误响应统一格式
 
-| 段位 | 含义 | HTTP | 客户端动作 |
-|---|---|---|---|
-| 1xxx | 参数/校验错 | 400 | SnackBar |
-| 2xxx | 鉴权错 (token/账号) | 401 | 跳登录 + 清 Token |
-| 3xxx | 资源/文件错 | 400/404 | SnackBar |
-| 4xxx | OpenIM 集成错 | 401/403/500/503 | 跳登录/SnackBar |
-| 5xxx | 业务逻辑错 | 400/409 | SnackBar |
-| 6xxx | 服务异常 | 500 | SnackBar |
+所有接口统一返回:
 
----
-
-## 2. 完整错误码表 (pxshe_app 定制)
-
-### 1xxx 参数/校验
-
-| ErrorKey | errCode | 后端触发 | i18n (zh) |
-|---|---|---|---|
-| `missingRequiredField` | 1001 | 缺字段 | 请填写所有必填项 |
-| `passwordTooShort` | 1002 | 密码 < 6 位 | 密码至少 6 位 |
-| `phoneInvalid` | 1003 | 手机号格式错 | 手机号格式错误 |
-| `userAlreadyExists` | 1004 | 用户名重 | 该用户名已被使用 |
-| `emailInvalid` | 1005 | 邮箱格式错 | 邮箱格式错误 |
-| `verifyCodeInvalid` | 1006 | 验证码错 | 验证码错误 |
-| `policyVersionExpired` | 1007 | 协议版本过期 | 协议已更新,请重新阅读 |
-| `policyNotAccepted` | 1008 | 协议未勾选 | 请勾选隐私协议 |
-
-### 2xxx 鉴权
-
-| ErrorKey | errCode | 后端触发 | i18n |
-|---|---|---|---|
-| `passwordError` | 20001 | 登录密码错 | 账号或密码错误 |
-| `userNotFound` | 20002 | 用户不存在 | 用户不存在 |
-| `accountBanned` | 20003 | User.is_active=False | 账号已被封禁 |
-| `tokenInvalid` | 20004 | JWT 格式错 | 登录信息异常 |
-| `tokenExpired` | 20005 | JWT exp | 登录已过期 |
-| `tokenMissing` | 20006 | 无 Authorization | 未登录 |
-| `kickedOffline` | 20007 | 另一设备登录 | 您的账号在另一台设备登录 |
-| `forbidden` | 20008 | 权限不足 | 没有权限 |
-
-### 3xxx 资源/文件
-
-| ErrorKey | errCode | i18n |
-|---|---|---|
-| `fileRequired` | 3001 | 请选择文件 |
-| `fileTypeNotSupported` | 3002 | 仅支持 JPG/PNG/PDF |
-| `fileTooLarge` | 3003 | 文件大小不能超过 10MB |
-| `universeNotFound` | 3004 | 宇宙不存在 |
-| `tableNotFound` | 3005 | 子表不存在 |
-| `rowNotFound` | 3006 | 数据行不存在 |
-
-### 4xxx OpenIM
-
-| ErrorKey | errCode | i18n |
-|---|---|---|
-| `imUnavailable` | 4001 | IM 服务暂不可用 |
-| `imTokenNotExist` | 4002 | IM 登录已过期 |
-| `imTokenKicked` | 4003 | 您已被踢下线 |
-| `imTokenExpired` | 4004 | IM 登录已过期 |
-| `imNotSupported` | 4005 | 当前不支持 |
-| `imConnectFailed` | 4006 | IM 连接失败 |
-| `imSendMessageFailed` | 4007 | 消息发送失败 |
-
-### 5xxx 业务逻辑
-
-| ErrorKey | errCode | i18n |
-|---|---|---|
-| `universeAlreadyExists` | 5001 | 宇宙名已存在 |
-| `tableAlreadyExists` | 5002 | 子表名已存在 |
-| `createFailed` | 5003 | 创建失败 |
-| `updateFailed` | 5004 | 更新失败 |
-| `deleteFailed` | 5005 | 删除失败 |
-| `operationForbidden` | 5006 | 操作被禁止 (不是自己创建的) |
-
-### 6xxx 服务异常
-
-| ErrorKey | errCode | i18n |
-|---|---|---|
-| `serverInternalError` | 6001-6009 | 服务异常,请稍后重试 |
-| `serviceUnavailable` | 6010 | 服务暂不可用 |
-| `timeout` | 6020 | 请求超时 |
-| `networkError` | 6030 | 网络错误 |
-| `unknown` | -1 | 操作失败 (兜底) |
-
----
-
-## 3. ApiException 推断顺序 (3 层)
-
-```dart
-// lib/_core/error/api_exception.dart
-int? _resolveErrCode(ApiException e) {
-  // 1. 后端已返 errCode
-  if (e.errCode != null) return e.errCode;
-
-  // 2. NetworkException / TimeoutException
-  if (e is NetworkException) return 6030;  // networkError
-  if (e is TimeoutException) return 6020;  // timeout
-
-  // 3. statusCode 兜底
-  switch (e.statusCode) {
-    case 401: return ErrCodeInferrer.infer(e.message) ?? 20004;  // tokenInvalid
-    case 403: return 20008;  // forbidden
-    case 404: return ErrCodeInferrer.infer(e.message) ?? 3004;  // universeNotFound
-    case 502:
-    case 503:
-    case 504: return 4001;  // imUnavailable
-  }
-
-  // 4. detail 关键词推断
-  return ErrCodeInferrer.infer(e.message) ?? -1;  // unknown
+```json
+{
+  "errCode": 0,
+  "errMsg": "",
+  "errDlt": "",
+  "data": {...}
 }
 ```
 
----
+| 字段 | 含义 |
+|---|---|
+| `errCode` | 错误码, 0 = 成功, 非 0 = 错误 |
+| `errMsg` | 错误信息 (中文), 用户可见 |
+| `errDlt` | 详细原因 (可选), 仅开发者看 |
+| `data` | 业务数据 (成功时填充) |
 
-## 4. ApiException 实现
-
-```dart
-// lib/_core/error/api_exception.dart
-class ApiException implements Exception {
-  ApiException({
-    required this.errorKey,
-    this.errCode,
-    this.message,
-    this.statusCode,
-  });
-
-  final ErrorKey errorKey;
-  final int? errCode;
-  final String? message;
-  final int? statusCode;
-
-  factory ApiException.fromResponse(Response<dynamic> res) {
-    final data = res.data as Map?;
-    if (data != null && data['errorCode'] != null) {
-      return ApiException(
-        errorKey: ErrCodeInferrer.infer(data['errMsg']?.toString()) ?? ErrorKey.unknown,
-        errCode: data['errorCode'] as int?,
-        message: data['errMsg']?.toString(),
-        statusCode: res.statusCode,
-      );
-    }
-    return ApiException(
-      errorKey: ErrorKey.unknown,
-      statusCode: res.statusCode,
-    );
-  }
-}
-```
+Flutter 端用 `ApiException.fromResponse` 解析, 提取 errCode → `ErrorKey.fromCode` 映射。
 
 ---
 
-## 5. ErrorHandler
+## 2. 错误码 7 段 (28 个 ErrorKey)
+
+### 2.1 1xxx 通用 / 参数 (4 个)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 1001 | `argsError` | ArgsError | 参数错误 | Toast "请求参数错误" |
+| 1002 | `noPermission` | NoPermissionError | 权限不足 | 跳登录页 (清 token) |
+| 1003 | `duplicateKey` | DuplicateKeyError | 记录重复 | Toast "记录已存在" |
+| 1004 | `recordNotFound` | RecordNotFoundError | 记录不存在 | Toast "记录不存在" |
+
+### 2.2 1.5xxx Token 错误 (7 个, OpenIM 标准)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 1501 | `tokenExpired` | TokenExpiredError | token 已过期 | 跳登录页, 提示"登录已过期" |
+| 1502 | `tokenInvalid` | TokenInvalidError | token 无效 | 跳登录页, 清 token |
+| 1503 | `tokenMalformed` | TokenMalformedError | token 格式错误 | 跳登录页, 清 token |
+| 1504 | `tokenNotValidYet` | TokenNotValidYetError | token 未生效 | Toast "登录信息未生效" |
+| 1505 | `tokenUnknown` | TokenUnknownError | token 未知错误 | 跳登录页, 清 token |
+| 1506 | `tokenKicked` | TokenKickedError | token 被踢 | 跳登录页, 提示"已在其他设备登录" |
+| 1507 | `tokenNotExist` | TokenNotExistError | token 不存在 | 跳登录页, 提示"请先登录" |
+
+### 2.3 2xxx 注册/登录/账号 (12 个)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 20001 | `passwordError` | PasswordError | 密码错误 | Toast "账号或密码错误" |
+| 20002 | `accountNotFound` | AccountNotFound | 账号不存在 | Toast "账号不存在" |
+| 20003 | `phoneAlreadyRegister` | PhoneAlreadyRegister | 手机号已注册 | Toast "该手机号已注册" |
+| 20004 | `accountAlreadyRegister` | AccountAlreadyRegister | 账号已注册 | Toast "该用户名已注册" |
+| 20005 | `verifyCodeSendFrequently` | VerifyCodeSendFrequently | 验证码发送太频繁 | Toast "请60秒后重试" |
+| 20006 | `verifyCodeNotMatch` | VerifyCodeNotMatch | 验证码错误 | Toast "验证码错误" |
+| 20007 | `verifyCodeExpired` | VerifyCodeExpired | 验证码已过期 | Toast "验证码已过期, 请重新获取" |
+| 20008 | `verifyCodeMaxCount` | VerifyCodeMaxCount | 验证码超过最大次数 | Toast "今日次数已用完" |
+| 20009 | `verifyCodeUsed` | VerifyCodeUsed | 验证码已使用 | Toast "验证码已使用" |
+| 20010 | `invitationCodeUsed` | InvitationCodeUsed | 邀请码已使用 | Toast "邀请码已被使用" |
+| 20011 | `invitationNotFound` | InvitationNotFound | 邀请码不存在 | Toast "邀请码无效" |
+| 20012 | `forbidden` | Forbidden | 禁止访问 | Toast "您的账号已被限制" |
+| 20014 | `emailAlreadyRegister` | EmailAlreadyRegister | 邮箱已注册 | Toast "该邮箱已注册" |
+
+### 2.4 3xxx 资源/文件 (3 个)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 3001 | `fileRequired` | FileRequired | 缺文件 | Toast "请选择文件" |
+| 3002 | `fileTypeNotSupported` | FileTypeNotSupported | 文件类型不支持 | Toast "仅支持 JPG/PNG/PDF" |
+| 3003 | `fileTooLarge` | FileTooLarge | 文件 > 10MB | Toast "文件大小不能超过 10MB" |
+
+### 2.5 4xxx OpenIM 透传 (5 个)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 4001 | `imUnavailable` | IMUnavailable | IM 服务暂不可用 | Toast "IM 服务暂不可用" |
+| 4002 | `imTokenNotExist` | IMTokenNotExist | IM token 不存在 | 跳登录页 |
+| 4003 | `imTokenKicked` | IMTokenKicked | IM 已被踢 | 跳登录页, 提示"已被踢" |
+| 4004 | `imTokenExpired` | IMTokenExpired | IM token 过期 | 跳登录页 |
+| 4005 | `imNotSupported` | IMNotSupported | IM 不支持 | Toast "当前不支持" |
+
+### 2.6 5xxx 业务逻辑 (6 个)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 5001 | `universeAlreadyExists` | UniverseAlreadyExists | 宇宙名重 | Toast "宇宙名已存在" |
+| 5002 | `tableAlreadyExists` | TableAlreadyExists | 子表名重 | Toast "子表名已存在" |
+| 5003 | `createFailed` | CreateFailed | 创建失败 | Toast "创建失败" |
+| 5004 | `updateFailed` | UpdateFailed | 更新失败 | Toast "更新失败" |
+| 5005 | `deleteFailed` | DeleteFailed | 删除失败 | Toast "删除失败" |
+| 5006 | `operationForbidden` | OperationForbidden | 操作被禁 | Toast "操作被禁止" |
+
+### 2.7 6xxx 服务异常 (1 个)
+
+| errCode | ErrorKey | backendName | 含义 | Flutter 处理 |
+|---|---|---|---|---|
+| 6001 | `serverInternalError` | ServerInternalError | 服务器内部错误 (兜底) | Toast "服务异常" |
+
+---
+
+## 3. HTTP Status Code 兜底映射
+
+OpenIM 框架所有接口**统一返回 HTTP 200**, 错误码在 body 的 `errCode` 字段。
+
+但 nginx 反代可能返回:
+
+| HTTP Status | ErrorKey | 含义 |
+|---|---|---|
+| 200 | 走 errCode | 正常 (看 errCode) |
+| 400 | `argsError` | nginx 层参数错 |
+| 401 | `tokenInvalid` | nginx 层 token 缺失 |
+| 403 | `noPermission` | nginx 层权限不足 |
+| 404 | `recordNotFound` | 接口路径错 |
+| 502 / 503 / 504 | `serverInternalError` | 后端服务未启动 / 响应超时 |
+
+Flutter 端 `ErrorKey.fromStatusCode` 处理。
+
+---
+
+## 4. Flutter 端全局错误处理
 
 ```dart
 // lib/_core/error/error_handler.dart
 class ErrorHandler {
-  static void handle(BuildContext context, Object e, {bool isOnAuthPage = false}) {
-    final apiEx = e is ApiException ? e : ApiException.fromError(e);
-    final errorKey = apiEx.errorKey;
-    final message = ErrorMessages.t(context, errorKey);
+  static void handle(
+    BuildContext context,
+    Object error, {
+    bool isOnAuthPage = false,
+    void Function()? onUnauthorized,
+  }) {
+    final apiException = error is ApiException
+        ? error
+        : ApiException(errorKey: ErrorKey.unknown, message: error.toString());
 
-    if (isOnAuthPage) {
-      // 登录/注册页不跳登录 (避免误清 token)
-      showErrorSnackBar(context, message);
-      return;
+    final isAuthError = apiException.errorKey.isAuthError;
+
+    if (isAuthError) {
+      onUnauthorized?.call();  // 清 token + 跳登录
     }
 
-    if (errorKey == ErrorKey.tokenExpired
-        || errorKey == ErrorKey.tokenInvalid
-        || errorKey == ErrorKey.tokenMissing
-        || errorKey == ErrorKey.kickedOffline) {
-      // 清 token + 跳登录
-      di<AuthRepository>().logout();
-      di<AppRouter>().router.go('/login');
-      showErrorSnackBar(context, message);
-      return;
+    if (isOnAuthPage && isAuthError) {
+      return;  // 登录页不显示 snack
     }
 
-    showErrorSnackBar(context, message);
+    _showSnack(context, apiException.message);
   }
 }
 ```
 
+### 4.1 哪些算 auth 错误 (isAuthError)
+
+```dart
+bool get isAuthError =>
+    (code >= 1501 && code <= 1507) ||  // Token 错误
+    code == 1002 ||                       // NoPermissionError
+    code == 20012;                        // Forbidden
+```
+
+### 4.2 调用方
+
+```dart
+// 在 Repository 层
+try {
+  final res = await dio.post('/account/login', data: {...});
+  return Right(User.fromJson(res.data));
+} on DioException catch (e) {
+  return Left(ApiException.fromDioError(e).message ?? '网络错误');
+}
+
+// 在 Widget 层
+ErrorHandler.handle(context, error);
+```
+
 ---
 
-## 6. 加新错误码 (3 步)
+## 5. 注册策略 (500 + errMsg 文本匹配)
 
-```
-□ 1. lib/_core/error/error_keys.dart enum 加 1 行 (ErrorKey + i18n key + errCode)
-□ 2. lib/_core/i18n/error_messages.dart 加中文 + 英文 2 行
-□ 3. test/_core/error/error_keys_test.dart 加 1 case
+后端某些错误 (注册策略) 用 `errCode=500` + `errMsg` 区分。Flutter 端:
+
+```dart
+if (apiException.errorKey == ErrorKey.serverInternalError) {
+  // 检查 errMsg 文本
+  final msg = apiException.message ?? '';
+  if (msg.contains('已被管理员关闭')) {
+    showToast('注册通道已关闭');
+  } else if (msg.contains('手机号注册已被关闭')) {
+    showToast('手机号注册已关闭');
+  }
+  // ... 其他策略
+}
 ```
 
-详见 [RECIPES.md §4](./RECIPES.md)。
+具体见 `F:\wx\app\BACKEND_DESIGN_SPEC.md` 第三节。
 
 ---
 
-*最后更新: 2026-07-01*
+## 6. 错误码变更流程
+
+**改错误码要同步**:
+1. 后端工程师改 `F:\wx\app\chat\pkg\common\errcode\codes.go`
+2. 后端工程师更新 `F:\wx\pxshe_app\docs/ERROR_CODES.md` (后端 SSOT)
+3. 前端工程师更新 `F:\wx\pxshe_app\docs/ERROR_HANDLING.md` (前端 SSOT, 本文件)
+4. 前端工程师更新 `lib/_core/error/api_exception.dart` ErrorKey enum
+5. 前端工程师跑 `tool/check_official.ps1` 验证
+6. CI 通过后,通知后端发版
+
+---
+
+## 7. 覆盖率检查
+
+每个 ErrorKey 必须有对应测试:
+
+```dart
+// test/_core/error/api_exception_test.dart
+test('returns argsError for 1001', () {
+  expect(ErrorKey.fromCode(1001), ErrorKey.argsError);
+});
+// ... 28 个 ErrorKey 都有
+```
+
+CI 强制覆盖率 ≥ 80% (widget tree 100% 难达)。
+
+---
+
+*最后更新: 2026-07-02 — 对齐后端 ERROR_CODES.md v1.0*
+*覆盖: 28 个 ErrorKey, 7 段 (1xxx/1.5xxx/2xxx/3xxx/4xxx/5xxx/6xxx)*

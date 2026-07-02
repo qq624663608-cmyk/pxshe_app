@@ -51,14 +51,50 @@ void main() {
       expect(unauthorizedCalled, isTrue);
     });
 
-    testWidgets('handles ApiException with kickedOffline', (tester) async {
+    testWidgets('handles ApiException with tokenKicked (1506)', (tester) async {
       var unauthorizedCalled = false;
       await tester.pumpWidget(_wrap(
         Builder(
           builder: (context) {
             ErrorHandler.handle(
               context,
-              ApiException(errorKey: ErrorKey.kickedOffline),
+              ApiException(errorKey: ErrorKey.tokenKicked),
+              onUnauthorized: () => unauthorizedCalled = true,
+            );
+            return const SizedBox.shrink();
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(unauthorizedCalled, isTrue);
+    });
+
+    testWidgets('handles noPermission (1002) as auth', (tester) async {
+      var unauthorizedCalled = false;
+      await tester.pumpWidget(_wrap(
+        Builder(
+          builder: (context) {
+            ErrorHandler.handle(
+              context,
+              ApiException(errorKey: ErrorKey.noPermission),
+              onUnauthorized: () => unauthorizedCalled = true,
+            );
+            return const SizedBox.shrink();
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(unauthorizedCalled, isTrue);
+    });
+
+    testWidgets('handles forbidden (20012) as auth', (tester) async {
+      var unauthorizedCalled = false;
+      await tester.pumpWidget(_wrap(
+        Builder(
+          builder: (context) {
+            ErrorHandler.handle(
+              context,
+              ApiException(errorKey: ErrorKey.forbidden),
               onUnauthorized: () => unauthorizedCalled = true,
             );
             return const SizedBox.shrink();
@@ -88,7 +124,27 @@ void main() {
       expect(unauthorizedCalled, isFalse);
     });
 
-    testWidgets('isOnAuthPage suppresses auth navigation', (tester) async {
+    testWidgets('does not call onUnauthorized for business errors',
+        (tester) async {
+      var unauthorizedCalled = false;
+      await tester.pumpWidget(_wrap(
+        Builder(
+          builder: (context) {
+            ErrorHandler.handle(
+              context,
+              ApiException(errorKey: ErrorKey.universeAlreadyExists),
+              onUnauthorized: () => unauthorizedCalled = true,
+            );
+            return const SizedBox.shrink();
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(unauthorizedCalled, isFalse);
+    });
+
+    testWidgets('isOnAuthPage suppresses snack but still triggers onUnauthorized',
+        (tester) async {
       var unauthorizedCalled = false;
       await tester.pumpWidget(_wrap(
         Builder(
@@ -107,14 +163,14 @@ void main() {
       expect(unauthorizedCalled, isTrue);
     });
 
-    testWidgets('handles tokenMissing', (tester) async {
+    testWidgets('handles tokenExpired (1501)', (tester) async {
       var unauthorizedCalled = false;
       await tester.pumpWidget(_wrap(
         Builder(
           builder: (context) {
             ErrorHandler.handle(
               context,
-              ApiException(errorKey: ErrorKey.tokenMissing),
+              ApiException(errorKey: ErrorKey.tokenExpired),
               onUnauthorized: () => unauthorizedCalled = true,
             );
             return const SizedBox.shrink();
@@ -125,14 +181,32 @@ void main() {
       expect(unauthorizedCalled, isTrue);
     });
 
-    testWidgets('handles tokenExpired', (tester) async {
+    testWidgets('handles tokenMalformed (1503)', (tester) async {
       var unauthorizedCalled = false;
       await tester.pumpWidget(_wrap(
         Builder(
           builder: (context) {
             ErrorHandler.handle(
               context,
-              ApiException(errorKey: ErrorKey.tokenExpired),
+              ApiException(errorKey: ErrorKey.tokenMalformed),
+              onUnauthorized: () => unauthorizedCalled = true,
+            );
+            return const SizedBox.shrink();
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(unauthorizedCalled, isTrue);
+    });
+
+    testWidgets('handles tokenNotExist (1507)', (tester) async {
+      var unauthorizedCalled = false;
+      await tester.pumpWidget(_wrap(
+        Builder(
+          builder: (context) {
+            ErrorHandler.handle(
+              context,
+              ApiException(errorKey: ErrorKey.tokenNotExist),
               onUnauthorized: () => unauthorizedCalled = true,
             );
             return const SizedBox.shrink();

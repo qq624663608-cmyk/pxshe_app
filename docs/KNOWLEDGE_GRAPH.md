@@ -40,7 +40,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 │  - di.dart          get_it 容器                         │
 │  - database.dart    Hive CE 初始化                      │
 │  - http_client.dart ApiClient (Dio + 拦截器)           │
-│  - error/           ErrorHandler + 6 段错误码          │
+│  - error/           ErrorHandler + 7 段 28 个错误码  │
 │  - theme.dart       AppColors + Material 3              │
 │  - network_info.dart 网络检测                          │
 │  - logger.dart      日志                                │
@@ -118,7 +118,7 @@ F:\wx\pxshe_app\
 |   |-- README.md                      入口 + 4 层读法
 |   |-- KNOWLEDGE_GRAPH.md             ★ 本文 (总览)
 |   |-- ARCHITECTURE.md                Clean + BLoC + Modular
-|   |-- ERROR_HANDLING.md              6 段错误码 (1xxx-6xxx)
+|   |-- ERROR_HANDLING.md              7 段错误码 (1xxx/1.5xxx/2xxx-6xxx, 28 个 ErrorKey)
 |   |-- TESTING.md                     4 层级测试 (L1-L4)
 |   |-- DEPLOYMENT.md                  Release + CI + Flavors
 |   |-- CONTRIBUTING.md                PR / commit / 分支 / 命名
@@ -211,18 +211,21 @@ F:\wx\pxshe_app\
 | `imToken` | /account/login 响应 | OpenIM SDK 登录 | Hive CE |
 | `userID` | /account/login 响应 | 用户唯一标识 | Hive CE |
 
-### 错误码体系 (6 段)
+### 错误码体系 (7 段,28 个 ErrorKey)
 
-| 段位 | 含义 | HTTP | 客户端动作 |
-|---|---|---|---|
-| 1xxx | 参数/校验 | 400 | SnackBar |
-| 2xxx | 鉴权 | 401 | 跳登录 + 清 Token |
-| 3xxx | 资源/文件 | 400 | SnackBar |
-| 4xxx | OpenIM | 401/403/500 | 跳登录/SnackBar |
-| 5xxx | 业务逻辑 | 400/409 | SnackBar |
-| 6xxx | 服务异常 | 500 | SnackBar |
+与后端 `F:\wx\pxshe_app\docs/ERROR_CODES.md` 一一对应。
 
-详见 [ERROR_HANDLING.md](./ERROR_HANDLING.md)。
+| 段位 | 含义 | HTTP | 客户端动作 | 数量 |
+|---|---|---|---|---|
+| 1xxx | 通用/参数 (ArgsError / NoPermission / DuplicateKey / RecordNotFound) | 400 | SnackBar | 4 |
+| 1.5xxx | Token 错误 (OpenIM 标准 7 个) | 401 | 跳登录 + 清 Token | 7 |
+| 2xxx | 注册/登录/账号 (密码/账号/验证/邀请) | 400/409 | SnackBar | 12 |
+| 3xxx | 资源/文件 | 400 | SnackBar | 3 |
+| 4xxx | OpenIM 透传 | 401/403/500 | 跳登录/SnackBar | 5 |
+| 5xxx | 业务逻辑 (universe/table/row) | 400/409 | SnackBar | 6 |
+| 6xxx | 服务异常 (ServerInternalError) | 500 | SnackBar | 1 |
+
+详见 [ERROR_HANDLING.md](./ERROR_HANDLING.md) (28 个 ErrorKey 完整表) 和 [docs/ERROR_CODES.md](./ERROR_CODES.md) (后端 SSOT)。
 
 ### BLoC vs Cubit 选型
 

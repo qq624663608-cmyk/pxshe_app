@@ -59,7 +59,7 @@ void main() {
         response: Response<dynamic>(
           requestOptions: RequestOptions(path: '/test'),
           statusCode: 200,
-          data: {'errorCode': 20001, 'errMsg': 'password error'},
+          data: {'errCode': 20001, 'errMsg': 'password error'},
         ),
         type: DioExceptionType.badResponse,
       );
@@ -89,20 +89,20 @@ void main() {
       expect(ErrorKey.fromCode(20001), ErrorKey.passwordError);
     });
 
-    test('returns networkError for 6030', () {
-      expect(ErrorKey.fromCode(6030), ErrorKey.networkError);
+    test('returns unknown for 6030 (no SSOT entry, network infra)', () {
+      expect(ErrorKey.fromCode(6030), ErrorKey.unknown);
     });
 
-    test('returns timeout for 6020', () {
-      expect(ErrorKey.fromCode(6020), ErrorKey.timeout);
+    test('returns unknown for 6020 (no SSOT entry, timeout infra)', () {
+      expect(ErrorKey.fromCode(6020), ErrorKey.unknown);
     });
 
     test('returns unknown for null', () {
       expect(ErrorKey.fromCode(null), ErrorKey.unknown);
     });
 
-    test('returns tokenInvalid for 2xxx unknown', () {
-      expect(ErrorKey.fromCode(2999), ErrorKey.tokenInvalid);
+    test('returns unknown for 2xxx unmapped (not 15xx)', () {
+      expect(ErrorKey.fromCode(2999), ErrorKey.unknown);
     });
   });
 }

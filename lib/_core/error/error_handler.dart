@@ -21,7 +21,7 @@ class ErrorHandler {
           );
 
     final message = apiException.message ?? apiException.errorKey.name;
-    final isAuthError = _isAuthError(apiException.errorKey);
+    final isAuthError = apiException.errorKey.isAuthError;
 
     if (isAuthError) {
       onUnauthorized?.call();
@@ -32,13 +32,6 @@ class ErrorHandler {
     }
 
     _showSnack(context, message);
-  }
-
-  static bool _isAuthError(ErrorKey key) {
-    return key == ErrorKey.tokenInvalid ||
-        key == ErrorKey.tokenMissing ||
-        key == ErrorKey.tokenExpired ||
-        key == ErrorKey.kickedOffline;
   }
 
   static void _showSnack(BuildContext context, String message) {
