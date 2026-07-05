@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:pxshe_app/_core/app_router.dart';
 import 'package:pxshe_app/_core/constants.dart';
 import 'package:pxshe_app/_core/di.dart';
 import 'package:pxshe_app/modules/im/auth_module_bridge.dart';
@@ -22,7 +19,6 @@ import 'package:pxshe_app/modules/im/domain/friend_repository.dart';
 import 'package:pxshe_app/modules/im/domain/group_repository.dart';
 import 'package:pxshe_app/modules/im/domain/im_auth_repository.dart';
 import 'package:pxshe_app/modules/im/domain/message_repository.dart';
-import 'package:pxshe_app/modules/im/features/placeholder/connection_status_page.dart';
 import 'package:pxshe_app/modules/im/im_routes.dart';
 
 /// Module facade for IM.

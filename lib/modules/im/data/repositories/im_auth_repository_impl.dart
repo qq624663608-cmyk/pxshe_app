@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_openim_sdk/flutter_openim_sdk.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:pxshe_app/_core/env.dart';
 import 'package:pxshe_app/_core/logger.dart';
 import 'package:pxshe_app/modules/im/data/datasources/openim_sdk_wrapper.dart';
 import 'package:pxshe_app/modules/im/domain/im_auth_repository.dart';

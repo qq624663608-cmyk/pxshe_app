@@ -59,8 +59,6 @@ class ConnectionStatusPage extends StatelessWidget {
     );
   }
 
-  im.ConnectionStatus? _statusOf(im.ConnectionState s) => s.status;
-
   IconData _iconFor(im.ConnectionStatus status) {
     switch (status) {
       case im.ConnectionStatus.connected:

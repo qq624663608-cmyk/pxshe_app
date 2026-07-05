@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_openim_sdk/flutter_openim_sdk.dart';
@@ -15,7 +14,6 @@ import 'package:pxshe_app/modules/im/features/chat_page/chat_page.dart';
 import 'package:pxshe_app/modules/im/features/contacts/contacts_page.dart';
 import 'package:pxshe_app/modules/im/features/placeholder/connection_status_page.dart';
 import 'package:pxshe_app/modules/im/features/profile/profile_page.dart';
-import 'package:pxshe_app/modules/im/im_routes.dart';
 
 /// Routes registered for the IM module.
 /// Phase 2.1: `/im/status` placeholder.

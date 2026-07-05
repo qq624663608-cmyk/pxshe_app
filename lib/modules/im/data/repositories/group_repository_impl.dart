@@ -14,8 +14,7 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<List<GroupInfo>> getJoinedGroups() async {
-    final result = await _wrapper.manager.groupManager.getJoinedGroupList();
-    return result ?? const <GroupInfo>[];
+    return _wrapper.manager.groupManager.getJoinedGroupList();
   }
 
   @override
@@ -51,9 +50,7 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<List<GroupInfo>> getInfo(List<String> groupIDs) async {
-    final result =
-        await _wrapper.manager.groupManager.getGroupsInfo(groupIDList: groupIDs);
-    return result ?? const <GroupInfo>[];
+    return _wrapper.manager.groupManager.getGroupsInfo(groupIDList: groupIDs);
   }
 
   @override

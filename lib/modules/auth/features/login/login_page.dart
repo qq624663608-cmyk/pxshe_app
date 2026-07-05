@@ -6,7 +6,6 @@ import 'package:pxshe_app/_core/error/api_exception.dart';
 import 'package:pxshe_app/_core/error/error_handler.dart';
 import 'package:pxshe_app/_core/error/failures.dart';
 import 'package:pxshe_app/_core/theme/app_colors.dart';
-import 'package:pxshe_app/_core/theme/app_durations.dart';
 import 'package:pxshe_app/_core/theme/app_radius.dart';
 import 'package:pxshe_app/_core/theme/app_spacing.dart';
 import 'package:pxshe_app/modules/auth/bloc/auth_bloc.dart';

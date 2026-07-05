@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_openim_sdk/flutter_openim_sdk.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:pxshe_app/_core/theme/app_colors.dart';
 import 'package:pxshe_app/_core/theme/app_radius.dart';

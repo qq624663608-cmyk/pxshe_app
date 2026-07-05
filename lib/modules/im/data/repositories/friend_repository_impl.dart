@@ -14,15 +14,13 @@ class FriendRepositoryImpl implements FriendRepository {
 
   @override
   Future<List<FriendInfo>> getFriendList() async {
-    final result = await _wrapper.manager.friendshipManager.getFriendList();
-    return result ?? const <FriendInfo>[];
+    return _wrapper.manager.friendshipManager.getFriendList();
   }
 
   @override
   Future<List<FriendApplicationInfo>> getReceivedFriendRequests() async {
-    final result = await _wrapper.manager.friendshipManager
+    return _wrapper.manager.friendshipManager
         .getFriendApplicationListAsRecipient();
-    return result ?? const <FriendApplicationInfo>[];
   }
 
   @override
@@ -59,13 +57,12 @@ class FriendRepositoryImpl implements FriendRepository {
     // SearchFriendsInfo extends FriendInfo, so it has `userID`/`nickname`
     // fields. Treat them as UserInfo via the parent fields.
     return result
-            ?.map((info) => UserInfo(
-                  userID: info.userID,
-                  nickname: info.nickname,
-                  faceURL: info.faceURL,
-                ))
-            .toList() ??
-        const <UserInfo>[];
+        .map((info) => UserInfo(
+              userID: info.userID,
+              nickname: info.nickname,
+              faceURL: info.faceURL,
+            ))
+        .toList();
   }
 
   @override
