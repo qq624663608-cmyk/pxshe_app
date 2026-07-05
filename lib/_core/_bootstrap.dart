@@ -29,7 +29,7 @@ class Bootstrap {
     di.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl());
 
     //* Registering Modules
-    AppModules.initBeforeRunApp();
+    await AppModules.initBeforeRunApp();
 
     //* initialize all routes
     di.registerLazySingleton(

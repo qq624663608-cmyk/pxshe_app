@@ -43,11 +43,11 @@ _imToken = payload['imToken'] as String?;
 import 'package:flutter_openim_sdk/flutter_openim_sdk.dart';
 
 class OpenIMSDKWrapper {
-  Future<void> login({required String imToken, required String apiAddr}) async {
-    await OpenIM.iMManager.login(
-      token: imToken,
-      apiAddr: apiAddr,  // 'api.pxshe.com:10002'
-    );
+  /// Login with the imToken obtained from the business server.
+  /// `userID` is required by the SDK; `imToken` comes from the
+  /// `POST /account/login` response (`data.imToken`).
+  Future<UserInfo> login({required String userID, required String imToken}) {
+    return OpenIM.iMManager.login(userID: userID, token: imToken);
   }
 }
 ```
@@ -84,46 +84,56 @@ OpenIM.iMManager.addEventListener(
 
 ## 3. 模块设计
 
+> 阶段 2 (2026-07) 完成。下面是**实际代码**结构(`git ls-files lib/modules/im/`),
+> 跟实际文件一一对应。**新加功能时,先改这里再写代码**(CONTRIBUTING §8)。
+
 ```
 lib/modules/im/
-├── im_module.dart             (DI 注册入口)
-├── im_routes.dart             (路由: /chat, /chat/:id, /contacts, /groups)
+├── auth_module_bridge.dart          (跨 module 拿 imToken,不依赖 auth 内部 — ADR-0005)
+├── im_module.dart                   (DI 注册入口 + bootstrapIMAfterLogin/Logout)
+├── im_routes.dart                   (GoRouter 路由 — 见下方)
 │
 ├── data/
 │   ├── datasources/
-│   │   ├── openim_sdk_wrapper.dart    (SDK 二次封装, 业务不直接调 SDK)
-│   │   └── im_local_cache.dart        (Hive 缓存, 备用)
-│   └── repositories/
-│       ├── im_auth_repository.dart
-│       ├── conversation_repository.dart
-│       ├── message_repository.dart
-│       ├── friend_repository.dart
-│       └── group_repository.dart
+│   │   └── openim_sdk_wrapper.dart   (SDK 二次封装, 业务不直接调 SDK — AGENTS §18)
+│   └── repositories/                 (5 个 repo impl)
+│       ├── im_auth_repository_impl.dart
+│       ├── conversation_repository_impl.dart
+│       ├── message_repository_impl.dart
+│       ├── friend_repository_impl.dart
+│       └── group_repository_impl.dart
 │
-├── domain/
-│   ├── entities/
-│   │   ├── conversation.dart
-│   │   ├── message.dart
-│   │   ├── friend.dart
-│   │   └── group.dart
-│   └── usecases/
-│       ├── send_message.dart
-│       ├── load_history.dart
-│       └── get_conversations.dart
+├── domain/                           (5 个 repository 接口)
+│   ├── im_auth_repository.dart
+│   ├── conversation_repository.dart
+│   ├── message_repository.dart
+│   ├── friend_repository.dart
+│   └── group_repository.dart
 │
-├── bloc/
-│   ├── connection_bloc.dart          (WebSocket 连接状态)
-│   ├── conversation_bloc.dart
-│   ├── message_bloc.dart
-│   ├── friend_bloc.dart
-│   └── group_bloc.dart
+├── bloc/                             (5 个 Cubit — ADR-0004 多 Cubit)
+│   ├── connection_cubit.dart        (WebSocket 连接状态)
+│   ├── conversation_cubit.dart
+│   ├── message_cubit.dart
+│   ├── friend_cubit.dart
+│   └── group_cubit.dart
 │
 └── features/
-    ├── chat_list/                    (会话列表)
-    ├── chat_page/                    (聊天页)
-    ├── contacts/                     (好友/群)
-    └── profile/                      (个人/群信息)
+    ├── chat_list/chat_list_page.dart      (/chat_list)
+    ├── chat_page/chat_page.dart          (/chat/:id)
+    ├── contacts/contacts_page.dart        (/contacts)
+    ├── profile/profile_page.dart          (/profile)
+    └── placeholder/connection_status_page.dart  (/im/status — 阶段 2.1 占位)
 ```
+
+### 3.1 路由清单(实际)
+
+| 路由 | 页面 | 阶段 |
+|---|---|---|
+| `/im/status` | `ConnectionStatusPage` | 2.1(占位) |
+| `/chat_list` | `ChatListPage` | 2.2 |
+| `/chat/:id` | `ChatPage` | 2.3 |
+| `/contacts` | `ContactsPage` | 2.4 |
+| `/profile` | `ProfilePage` | 2.5 |
 
 ---
 
@@ -264,6 +274,18 @@ android {
 ```
 
 详见 [platform-config.md](./platform-config.md) (阶段 1.12 已配)。
+
+### Flutter 依赖(pubspec.yaml)
+
+OpenIM SDK 本身在 `flutter_openim_sdk: ^3.8.3+hotfix.12`,**Flutter 业务代码不直连 SDK**
+(走 `OpenIMSDKWrapper`,AGENTS §18)。
+
+阶段 2 新增依赖:
+- **`path_provider: ^2.1.5`** — SDK `initSDK` 需要 `dataDir`,业务用
+  `getApplicationDocumentsDirectory()` 传 app 持久目录
+  (`lib/modules/im/data/repositories/im_auth_repository_impl.dart:46`)。
+
+见 `docs/REFERENCE.md §1` 完整依赖表 + `docs/LICENSE_INFO.md §2` License 矩阵。
 
 ---
 

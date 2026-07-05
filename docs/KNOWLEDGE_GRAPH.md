@@ -25,13 +25,25 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 ┌─────────────────────────────────────────────────────────┐
 │ lib/                入口 (main_*.dart + bootstrap)         │
 ├─────────────────────────────────────────────────────────┤
-│ modules/           业务层 (6 个 module)                  │
+│ modules/           业务层 (6 个 module,阶段 2 完成 im)    │
 │  - auth/            登录 / 登出 / Token 缓存             │
 │  - registration/    注册 (3 种方式 + GDPR 隐私协议)     │
-│  - im/              OpenIM 集成 (单聊 / 群聊)            │
-│  - universe/        宇宙模块 (世界/子表/行)              │
-│  - table/           子表管理                            │
-│  - row/             数据行编辑 (动态 JSON)              │
+│  - im/              ✅ OpenIM 集成 (阶段 2 完成)        │
+│    * data/datasources/openim_sdk_wrapper.dart          │
+│    * data/repositories/{im_auth,conversation,message,  │
+│      friend,group}_repository_impl.dart               │
+│    * domain/{im_auth,conversation,message,            │
+│      friend,group}_repository.dart                    │
+│    * bloc/{connection,conversation,message,           │
+│      friend,group}_cubit.dart                         │
+│    * features/{chat_list,chat_page,contacts,           │
+│      profile,placeholder}/                            │
+│    * auth_module_bridge.dart (跨 module 拿 imToken)   │
+│    * im_module.dart (DI 注册 + bootstrap 钩子)        │
+│    * im_routes.dart (GoRouter 集成)                   │
+│  - universe/        宇宙模块 (世界/子表/行) (阶段 3)   │
+│  - table/           子表管理 (阶段 3)                  │
+│  - row/             数据行编辑 (动态 JSON) (阶段 3)    │
 ├─────────────────────────────────────────────────────────┤
 │ _core/             基建层 (无业务依赖)                   │
 │  - _bootstrap.dart  4 阶段启动                          │
@@ -39,9 +51,11 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 │  - app_router.dart  GoRouter + 路由守卫                │
 │  - di.dart          get_it 容器                         │
 │  - database.dart    Hive CE 初始化                      │
-│  - http_client.dart ApiClient (Dio + 拦截器)           │
+│  - http_client.dart 老 HttpClient (阶段 2 后基本不用)  │
+│  - network/         ApiClient (Dio + 拦截器 + ✅ 注册) │
+│  - env.dart         Env 三域配置 ✅                    │
 │  - error/           ErrorHandler + 7 段 28 个错误码  │
-│  - theme.dart       AppColors + Material 3              │
+│  - theme/           AppColors/Spacing/Radius/Durations  │
 │  - network_info.dart 网络检测                          │
 │  - logger.dart      日志                                │
 ├─────────────────────────────────────────────────────────┤
@@ -254,8 +268,10 @@ F:\wx\pxshe_app\
 - [BUILDING_BLOCKS.md](./BUILDING_BLOCKS.md)
 - [RECIPES.md](./RECIPES.md)
 - [CACHE_STRATEGY.md](./CACHE_STRATEGY.md)
+- [IM_INTEGRATION.md](./IM_INTEGRATION.md) — OpenIM SDK 集成
+- [IM_API_MAP.md](./IM_API_MAP.md) — **阶段 2 SDK API SSOT**
+- [PHASE2_PLAN.md](./PHASE2_PLAN.md) — **阶段 2 实施清单**
 - [CONFIGURATION.md](./CONFIGURATION.md)
-- [IM_INTEGRATION.md](./IM_INTEGRATION.md)
 - [LICENSE_INFO.md](./LICENSE_INFO.md)
 - [ADR/](./ADR/) (10 个)
 

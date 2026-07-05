@@ -189,7 +189,7 @@ pxshe_app/
 │   ├── app/                 ← MaterialApp.router
 │   ├── _core/               ← Bootstrap / DI / ApiClient / Database / Error
 │   ├── _shared/             ← Theme / 公共路由 / 公共 widget
-│   └── modules/             ← 6 个业务 module (auth/registration/im/universe/table/row)
+│   └── modules/             ← 6 个业务 module (3 个已实现: auth/registration/im;3 个计划: universe/table/row — 阶段 3)
 └── test/                    ← 单元 + widget test
 ```
 

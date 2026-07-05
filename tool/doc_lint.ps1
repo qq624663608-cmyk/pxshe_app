@@ -18,7 +18,9 @@ function Write-Ok($msg) {
 Write-Host '--- Doc lint check ---' -ForegroundColor Cyan
 
 # 1. 单文件行数
-$mdFiles = Get-ChildItem -Path 'docs' -Filter '*.md' -Recurse -ErrorAction SilentlyContinue
+# docs/app/ 是后端 API 文档 SSOT(架构 / 错误码 / 集成 checklist),不属于 Flutter 项目文档,跳过
+$mdFiles = Get-ChildItem -Path 'docs' -Filter '*.md' -Recurse -ErrorAction SilentlyContinue |
+    Where-Object { $_.DirectoryName -notlike '*\docs\app' }
 foreach ($f in $mdFiles) {
     $lines = (Get-Content $f.FullName).Count
     if ($lines -gt 500) {

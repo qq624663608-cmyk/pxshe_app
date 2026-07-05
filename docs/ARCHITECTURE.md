@@ -92,7 +92,15 @@ pxshe_app/
 │   └── modules/                  # 业务模块
 │       ├── auth/                 # 登录
 │       ├── registration/         # 注册 (阶段 1.5)
-│       ├── im/                   # IM 客户端 (阶段 2)
+│       ├── im/                   # ✅ IM 客户端 (阶段 2)
+│       │   ├── data/datasources/openim_sdk_wrapper.dart
+│       │   ├── data/repositories/  # 5 个 repository 实现
+│       │   ├── domain/             # 5 个 repository 接口
+│       │   ├── bloc/               # 5 个 Cubit
+│       │   ├── features/           # ChatList / ChatPage / Contacts / Profile
+│       │   ├── auth_module_bridge.dart  # 跨 module 拿 imToken
+│       │   ├── im_module.dart      # DI 注册 + bootstrapIMAfterLogin()
+│       │   └── im_routes.dart      # GoRouter 路由
 │       ├── universe/             # 业务 (阶段 3)
 │       ├── table/                # 业务 (阶段 3)
 │       └── row/                  # 业务 (阶段 3)
@@ -208,4 +216,4 @@ pxshe_app/
 
 ---
 
-*最后更新: 2026-07-01*
+*最后更新: 2026-07-06 — 阶段 2 全功能完成 (Connection/Conversation/Message/Friend/Group + ChatList/ChatPage/Contacts/Profile) + 登录流程接入 IM bootstrap + Env 三域*

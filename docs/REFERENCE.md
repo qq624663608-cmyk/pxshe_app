@@ -59,6 +59,7 @@
 |---|---|
 | ✅ `dio` ^5.x | ❌ `http` (功能少) |
 | ✅ `retrofit` (如需要 codegen) | ❌ 手写 HTTP 客户端 |
+| ✅ `dartz` (Either/Option) | ❌ 自定义 sealed class |
 
 ---
 

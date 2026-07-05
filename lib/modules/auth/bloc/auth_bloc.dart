@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../_core/logger.dart';
+import '../../../modules/im/im_module.dart';
 import '../domain/auth_usecases.dart';
 import '../domain/user.dart';
 
@@ -33,8 +35,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(state.copyWith(status: AuthStatus.unauthenticated));
     } else {
       emit(state.copyWith(status: AuthStatus.authenticated, user: cached));
+      // Bootstrap IM after a successful session restore. Failures are
+      // logged but never block the auth state — the user can still use
+      // the app without IM until they retry.
+      unawaited(_bootstrapIM().catchError((Object e, StackTrace _) {
+        Log.w('AuthBloc: IM bootstrap failed on cold start: $e');
+      }));
     }
   }
+
+  Future<void> _bootstrapIM() => bootstrapIMAfterLogin();
 
   Future<void> _onAuthSubscriptionRequested(
     AuthStatusSubscriptionRequested event,
@@ -62,6 +72,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     await _userUsecase.logout();
+    unawaited(bootstrapIMAfterLogout().catchError((Object e, StackTrace _) {
+      Log.w('AuthBloc: IM logout failed: $e');
+    }));
     emit(state.copyWith(status: AuthStatus.unauthenticated, user: User.empty));
   }
 

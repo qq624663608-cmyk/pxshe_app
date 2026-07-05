@@ -6,12 +6,13 @@ class Constants {
   static String get apiBaseUrl => Env.apiBase;
 
   static const String cachedTokenRef = 'CACHED_TOKEN';
+  static const String cachedImTokenRef = 'CACHED_IM_TOKEN';
   static const String tokenBoxName = 'CACHED_TOKEN_BOX';
 
   static const String cachedUserRef = 'CACHED_USER';
   static const String userBoxName = 'CACHED_USER_BOX';
 
-  static const String themeBoxName = "ThemeBox";
+  static const String themeBoxName = 'THEME_BOX';
   static const String themeModeRef = "Mode";
 
   static const List<Breakpoint> breakpoints = [

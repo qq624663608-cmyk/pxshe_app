@@ -31,6 +31,7 @@ dependencies:
   intl: ^0.20.2
   loader_overlay: ^5.0.0
   logger: ^2.7.0
+  path_provider: ^2.1.5
   responsive_framework: ^1.5.1
   rxdart: ^0.28.0
   toastification: ^3.2.0

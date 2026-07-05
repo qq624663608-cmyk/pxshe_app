@@ -1,40 +1,40 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:hive_ce/hive.dart';
 
 import 'constants.dart';
 import 'di.dart';
 import 'error/exceptions.dart';
+import 'logger.dart';
 
 class HttpClient {
   static Future<void> init() async {
     Dio dio = Dio(BaseOptions(baseUrl: Constants.apiBaseUrl));
 
-    // add interceptor to dio
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // get user token
-          final tokenBox = await Hive.openLazyBox(Constants.tokenBoxName);
-          final token = await tokenBox.get(Constants.cachedTokenRef);
-          if (token != Null) {
-            options.headers['authorization'] = "Bearer $token";
+          try {
+            final box = await di<HiveInterface>()
+                .openLazyBox<String>(Constants.tokenBoxName);
+            final token = await box.get(Constants.cachedTokenRef);
+            if (token != null && token.isNotEmpty) {
+              options.headers['authorization'] = 'Bearer $token';
+            }
+          } on Exception catch (e) {
+            Log.w('HttpClient: failed to read token box', e);
           }
-          debugPrint("request: ${options.uri}");
+          Log.d('request: ${options.uri}');
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          // debugPrint('request success');
-          if (response.statusCode! >= 200 || response.statusCode! < 300) {
-            return handler.next(response);
-          } else {
-            response = ServerException() as Response;
+          final status = response.statusCode ?? 0;
+          if (status >= 200 && status < 300) {
             return handler.next(response);
           }
+          throw ServerException();
         },
         onError: (DioException e, handler) {
-          // ignore: avoid_print
-          print('onError: => $e');
+          Log.e('HttpClient.onError', e);
           return handler.next(e);
         },
       ),

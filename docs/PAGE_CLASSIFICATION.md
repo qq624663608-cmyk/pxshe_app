@@ -12,9 +12,10 @@
 | `auth/login_page` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `auth/placeholder_page` | ✅ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | `registration/register_page` | ⬜ | ✅ | ⬜ | ⬜ | ⬜ | ⬜ |
-| `im/chat_list_page` (阶段 2) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
-| `im/chat_page` (阶段 2) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
-| `im/contacts_page` (阶段 2) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
+| `im/chat_list_page` (阶段 2.2 ✅) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
+| `im/chat_page` (阶段 2.3 ✅) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
+| `im/contacts_page` (阶段 2.4 ✅) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
+| `im/placeholder/connection_status_page` (阶段 2.1 ✅) | ⬜ | ⬜ | ✅ | ⬜ | ⬜ | ⬜ |
 | `universe/list_page` (阶段 3) | ⬜ | ⬜ | ⬜ | ✅ | ⬜ | ⬜ |
 | `universe/detail_page` (阶段 3) | ⬜ | ⬜ | ⬜ | ✅ | ✅ | ✅ |
 | `table/manage_page` (阶段 3) | ⬜ | ⬜ | ⬜ | ✅ | ✅ | ⬜ |
@@ -64,9 +65,11 @@
 | `/register` | RegisterPage | registration |
 | `/home` | HomePage | _shared |
 | `/settings` | SettingsPage | _shared |
-| `/chat` (阶段 2) | ChatListPage | im |
-| `/chat/:id` (阶段 2) | ChatPage | im |
-| `/contacts` (阶段 2) | ContactsPage | im |
+| `/im/status` (阶段 2.1 ✅) | ConnectionStatusPage | im |
+| `/chat_list` (阶段 2.2 ✅) | ChatListPage | im |
+| `/chat/:id` (阶段 2.3 ✅) | ChatPage | im |
+| `/contacts` (阶段 2.4 ✅) | ContactsPage | im |
+| `/profile` (阶段 2.5 ✅) | ProfilePage | im |
 | `/universe` (阶段 3) | UniverseListPage | universe |
 | `/universe/:id` (阶段 3) | UniverseDetailPage | universe |
 | `/universe/:id/table/:name` (阶段 3) | RowListPage | row |
@@ -74,4 +77,4 @@
 
 ---
 
-*最后更新: 2026-07-01*
+*最后更新: 2026-07-06 — 阶段 2.5 ProfilePage 完成 (+ 阶段 2.1-2.4)*

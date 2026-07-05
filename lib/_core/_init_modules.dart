@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 
 import '../_shared/shared_module.dart';
 import '../modules/auth/auth_module.dart';
+import '../modules/im/im_module.dart';
 import '../modules/registration/registration_module.dart';
 import 'di.dart';
 import 'layout/adaptive_layout/adaptive_destination.dart';
 
 class AppModules {
   /// Initializes modules before the Flutter app runs (before `runApp()`).
-  static void initBeforeRunApp() {
+  static Future<void> initBeforeRunApp() async {
     registerAuthModule();
     registerRegistrationModule();
     registerSharedModule();
+    await registerIMModule();
   }
 
   /// Initializes modules after the Flutter app has started (after `runApp()`), when BuildContext is available.

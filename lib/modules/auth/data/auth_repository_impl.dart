@@ -199,7 +199,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final box = await hive.openLazyBox<String>(Constants.tokenBoxName);
       await box.put(Constants.cachedTokenRef, chatToken);
       if (imToken != null) {
-        await box.put('cachedImToken', imToken);
+        await box.put(Constants.cachedImTokenRef, imToken);
       }
     } catch (_) {
       throw CacheException();

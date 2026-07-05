@@ -28,10 +28,13 @@
 // lib/modules/auth/data/auth_repository_impl.dart
 class AuthRepositoryImpl implements AuthRepository {
   static const _tokenBoxName = 'auth_token_box';
-  static const _tokenKey = 'chat_token';
-  static const _imTokenKey = 'im_token';
   static const _userBoxName = 'user_box';
   static const _userKey = 'current_user';
+
+  // Cache keys centralised in lib/_core/constants.dart so docs and tests
+  // agree on a single source of truth:
+  //   Constants.cachedTokenRef    = 'CACHED_TOKEN'    (chat token)
+  //   Constants.cachedImTokenRef  = 'CACHED_IM_TOKEN' (IM token)
 
   Future<void> _cacheTokens({
     required String chatToken,
@@ -39,9 +42,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }) async {
     try {
       final box = await hive.openLazyBox<String>(_tokenBoxName);
-      await box.put(_tokenKey, chatToken);
+      await box.put(Constants.cachedTokenRef, chatToken);
       if (imToken != null) {
-        await box.put(_imTokenKey, imToken);
+        await box.put(Constants.cachedImTokenRef, imToken);
       }
     } catch (_) {
       throw CacheException();
