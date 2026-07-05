@@ -50,7 +50,7 @@ operationID: startup-cfg-{ts}
 
 ```json
 {
-  "errorCode": 0,
+  "errCode": 0,
   "data": {
     "allowRegister": true,
     "availableMethods": ["phone", "email", "username"],
@@ -186,7 +186,7 @@ operationID: register-{ts}
 
 ```json
 {
-  "errorCode": 0,
+  "errCode": 0,
   "data": {
     "userID": "3370159211",
     "chatToken": "eyJhbGc...",
@@ -350,7 +350,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }),
     );
 
-    if (res.data['errorCode'] == 0) {
+    if (res.data['errCode'] == 0) {
       // 注册成功 → 直接登录
       final token = res.data['data']['chatToken'];
       await saveToken(token);

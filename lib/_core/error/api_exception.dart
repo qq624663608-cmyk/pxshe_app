@@ -128,7 +128,7 @@ class ApiException implements Exception {
     String? errMsg;
     if (data is Map) {
       errCode = data['errCode'] as int?;
-      errMsg = (data['errMsg'] ?? data['errMsg'])?.toString();
+      errMsg = data['errMsg']?.toString();
     }
     final key = errCode != null
         ? ErrorKey.fromCode(errCode)

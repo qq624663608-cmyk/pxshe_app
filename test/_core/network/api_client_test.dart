@@ -130,7 +130,7 @@ void main() {
       )).thenAnswer((_) async => Response<dynamic>(
         requestOptions: RequestOptions(path: '/login'),
         statusCode: 200,
-        data: {'errorCode': 0, 'data': {}},
+        data: <String, dynamic>{'errCode': 0, 'data': <String, dynamic>{}},
       ));
 
       final client = ApiClient(dio: dio);

@@ -77,7 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       final data = Map<String, dynamic>.from(res.data as Map);
-      if (data['errorCode'] != 0) {
+      if (data['errCode'] != 0) {
         return Left(ServerFailure(data['errMsg']?.toString() ?? 'Login failed'));
       }
 
@@ -141,7 +141,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       final data = Map<String, dynamic>.from(res.data as Map);
-      if (data['errorCode'] != 0) {
+      if (data['errCode'] != 0) {
         return Left(ServerFailure(data['errMsg']?.toString() ?? 'Registration failed'));
       }
 

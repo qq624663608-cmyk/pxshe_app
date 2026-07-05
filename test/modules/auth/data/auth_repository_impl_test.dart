@@ -91,13 +91,13 @@ void main() {
       expect(res.isLeft(), isTrue);
     });
 
-    test('returns Left on server errorCode', () async {
+    test('returns Left on server errCode', () async {
       final dio = _MockDio();
       when(() => dio.post<dynamic>(any(), data: any(named: 'data')))
           .thenAnswer((_) async => Response<dynamic>(
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
-                data: {'errorCode': 20001, 'errMsg': 'bad pw'},
+                data: {'errCode': 20001, 'errMsg': 'bad pw'},
               ));
       final networkInfo = _MockNetworkInfo();
       when(() => networkInfo.isConnected()).thenAnswer((_) async => true);
@@ -118,7 +118,7 @@ void main() {
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
                 data: {
-                  'errorCode': 0,
+                  'errCode': 0,
                   'data': {
                     'chatToken': 'ct',
                     'userID': 'u1',
@@ -157,7 +157,7 @@ void main() {
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
                 data: {
-                  'errorCode': 0,
+                  'errCode': 0,
                   'data': {
                     'chatToken': 'ct',
                     'userID': 'u1',

@@ -10,7 +10,7 @@ class RegistrationService {
   Future<RegistrationConfig> fetchConfig() async {
     final res = await apiClient.post('/business/public/registration/config/get');
     final data = res.data;
-    if (data is Map<String, dynamic> && data['errorCode'] == 0) {
+    if (data is Map<String, dynamic> && data['errCode'] == 0) {
       final config = RegistrationConfig.fromJson(
         Map<String, dynamic>.from(data['data'] as Map),
       );

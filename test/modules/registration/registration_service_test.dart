@@ -124,7 +124,7 @@ void main() {
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
                 data: {
-                  'errorCode': 0,
+                  'errCode': 0,
                   'data': {
                     'allowRegister': true,
                     'availableMethods': ['phone', 'email'],
@@ -145,7 +145,7 @@ void main() {
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
                 data: {
-                  'errorCode': 0,
+                  'errCode': 0,
                   'data': {'allowRegister': true, 'availableMethods': ['phone']},
                 },
               ));
@@ -155,12 +155,12 @@ void main() {
       expect(service.cachedConfig!.allowRegister, isTrue);
     });
 
-    test('fetchConfig throws on errorCode != 0', () async {
+    test('fetchConfig throws on errCode != 0', () async {
       when(() => api.post(any(), data: any(named: 'data')))
           .thenAnswer((_) async => Response<dynamic>(
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
-                data: {'errorCode': 500, 'errMsg': 'server error'},
+                data: {'errCode': 500, 'errMsg': 'server error'},
               ));
 
       expect(service.fetchConfig(), throwsA(isA<Exception>()));
@@ -183,7 +183,7 @@ void main() {
                 requestOptions: RequestOptions(path: '/x'),
                 statusCode: 200,
                 data: {
-                  'errorCode': 0,
+                  'errCode': 0,
                   'data': {'allowRegister': true, 'availableMethods': ['phone']},
                 },
               ));

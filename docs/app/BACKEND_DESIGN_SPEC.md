@@ -1252,7 +1252,7 @@ Flutter 登录
                                                                                             ↓
                                                                                             删 1 行
                                                                                             ↓
-                                                                    返 { errorCode: 0 }
+                                                                    返 { errCode: 0 }
                        前端刷新列表,空状态
 ```
 
@@ -1292,7 +1292,7 @@ Flutter 登录
                                                                                             ↓
                                                                                             主表 world 15 记录被删
                                                                                             ↓
-                                                返 { errorCode: 0 }
+                                                返 { errCode: 0 }
                        前端弹"已删除" + 跳列表页
 ```
 
@@ -1319,7 +1319,7 @@ Flutter 登录
 **结果**:两个都执行 DeleteUniverse。A 先执行完(删了所有子表+主表),B 再执行时:
 - ListDynamicTables(15) 返回空
 - DELETE FROM universe WHERE id=15 影响 0 行(因为 A 已删)
-- 返 errorCode=0(不算错误,只是删了个空操作)
+- 返 errCode=0(不算错误,只是删了个空操作)
 
 ⚠️ **第二次返回"成功"但实际啥都没干**。前端应该检查响应体,确认世界真的删了。
 

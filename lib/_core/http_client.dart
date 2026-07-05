@@ -5,24 +5,27 @@ import 'constants.dart';
 import 'di.dart';
 import 'error/exceptions.dart';
 import 'logger.dart';
+import 'network/auth_interceptor.dart';
+import 'network/operation_id_interceptor.dart';
 
 class HttpClient {
   static Future<void> init() async {
     Dio dio = Dio(BaseOptions(baseUrl: Constants.apiBaseUrl));
 
-    dio.interceptors.add(
+    dio.interceptors.addAll([
+      OperationIdInterceptor(),
+      AuthInterceptor(tokenProvider: () async {
+        try {
+          final box = await di<HiveInterface>()
+              .openLazyBox<String>(Constants.tokenBoxName);
+          return await box.get(Constants.cachedTokenRef);
+        } on Exception catch (e) {
+          Log.w('HttpClient: failed to read token box', e);
+          return null;
+        }
+      }),
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          try {
-            final box = await di<HiveInterface>()
-                .openLazyBox<String>(Constants.tokenBoxName);
-            final token = await box.get(Constants.cachedTokenRef);
-            if (token != null && token.isNotEmpty) {
-              options.headers['authorization'] = 'Bearer $token';
-            }
-          } on Exception catch (e) {
-            Log.w('HttpClient: failed to read token box', e);
-          }
           Log.d('request: ${options.uri}');
           return handler.next(options);
         },
@@ -38,7 +41,7 @@ class HttpClient {
           return handler.next(e);
         },
       ),
-    );
+    ]);
 
     di.registerLazySingleton(() => dio);
   }

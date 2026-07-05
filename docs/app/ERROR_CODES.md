@@ -115,7 +115,7 @@
 
 ## 六、admin 后台错误码（admin-api）
 
-> admin 后台接口错误格式与 chat-api 相同，但部分接口用 `errorMsg` 字段。
+> admin 后台接口错误格式与 chat-api 相同，但部分接口用 `errMsg` 字段。
 
 | errCode | errMsg / errorMsg | 含义 | 前端处理建议 |
 |---------|------------------|------|------------|
@@ -133,8 +133,8 @@
 
 ## 七、Universe 接口业务错误码（chat-api / admin-api）
 
-> Universe 接口统一返回 `{"errorCode": 0, "data": ...}` 成功，错误时 HTTP status 非 200 或 `errorCode` 非 0。
-> chat-api 普通用户接口用 `errorCode` 字段；admin-api 也用 `errorCode` 字段。
+> Universe 接口统一返回 `{"errCode": 0, "data": ...}` 成功，错误时 HTTP status 非 200 或 `errCode` 非 0。
+> chat-api 普通用户接口用 `errCode` 字段；admin-api 也用 `errCode` 字段。
 
 | errCode | 含义 | 前端处理建议 |
 |---------|------|------------|
