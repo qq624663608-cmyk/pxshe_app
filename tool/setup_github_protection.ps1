@@ -1,8 +1,8 @@
 # setup_github_protection.ps1 - one-time setup after first git push
 #
 # 用途: 配置 GitHub 仓库的 Branch protection + 启用 Dependabot auto-merge
-# 前置: 已 git push 到 GitHub, 已安装 gh CLI 并 `gh auth login`
-# 用法: pwsh tool/setup_github_protection.ps1
+# 前置: 已 git push 到 GitHub, 已有 Personal Access Token (PAT)
+# 用法: $env:GH_TOKEN = "ghp_xxx"; pwsh tool/setup_github_protection.ps1
 #
 # 这是 setup 脚本,不是常驻工具. 跑成功一次后可以删.
 
@@ -15,115 +15,123 @@ function Ok($msg)   { Write-Host ('  [ok] ' + $msg) -ForegroundColor Green }
 function Warn($msg) { Write-Host ('  [warn] ' + $msg) -ForegroundColor Yellow }
 function Fail($msg) { Write-Host ('  [fail] ' + $msg) -ForegroundColor Red; exit 1 }
 
-# 1. 验证 gh CLI
-Step '1. Check gh CLI'
-if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-    Fail "gh CLI not found. Install: winget install GitHub.cli (then: gh auth login)"
+# GitHub API 调用 helper (用 Invoke-WebRequest, 兼容 PowerShell 5.1)
+function Gh-Api {
+    param([string]$Method, [string]$Path, [string]$Body = $null)
+    $headers = @{
+        'Authorization' = "Bearer $env:GH_TOKEN"
+        'Accept'        = 'application/vnd.github+json'
+        'User-Agent'    = 'pxshe-setup-script'
+    }
+    $params = @{
+        Method        = $Method
+        Uri           = "https://api.github.com$Path"
+        Headers       = $headers
+        TimeoutSec    = 30
+        UseBasicParsing = $true
+    }
+    if ($Body) {
+        $params['Body'] = $Body
+        $params['ContentType'] = 'application/json'
+    }
+    try {
+        $resp = Invoke-WebRequest @params -ErrorAction Stop
+        return $resp.StatusCode
+    } catch {
+        $code = 0
+        if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+        return $code
+    }
 }
-gh --version | Out-Null
-Ok 'gh CLI found'
 
-# 2. 验证认证
-Step '2. Check gh auth'
-$authStatus = gh auth status 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Fail "gh not authenticated. Run: gh auth login"
+# 1. 拿 token
+Step '1. Read GH_TOKEN env var'
+if (-not $env:GH_TOKEN) {
+    Fail '$env:GH_TOKEN is empty. Set it first: $env:GH_TOKEN = "ghp_xxx"'
 }
-Ok 'authenticated'
+if ($env:GH_TOKEN -notmatch '^ghp_') {
+    Fail 'token does not look like a PAT (expected prefix ghp_)'
+}
+Ok ('token prefix: ' + $env:GH_TOKEN.Substring(0, 8) + '...')
 
-# 3. 取仓库名 (owner/repo)
-Step '3. Detect repo'
+# 2. 解析 remote
+Step '2. Detect repo from git remote'
 $remoteUrl = git remote get-url origin 2>&1
 if ($LASTEXITCODE -ne 0 -or -not $remoteUrl) {
-    Fail "no remote 'origin' set. Run: git remote add origin <github-url>, then git push -u origin master"
+    Fail "no remote 'origin' set"
 }
-Ok ('remote: ' + $remoteUrl)
-
-# 解析 owner/repo from URL
-# e.g. https://github.com/owner/repo.git  -> owner/repo
-#      git@github.com:owner/repo.git     -> owner/repo
 $repo = $null
 if ($remoteUrl -match 'github\.com[:/](.+?)/(.+?)(\.git)?$') {
     $repo = "$($Matches[1])/$($Matches[2])"
 }
 if (-not $repo) {
-    Fail "cannot parse owner/repo from remote: $remoteUrl"
+    Fail "cannot parse owner/repo from: $remoteUrl"
 }
 Ok ("repo: " + $repo)
 
-# 4. 检查仓库存在
-Step '4. Check repo exists'
-$repoCheck = gh repo view $repo 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Fail "repo $repo not found or no access"
+# 3. 验证 token + repo
+Step '3. Verify token + repo access'
+$authCheck = Gh-Api -Method GET -Path "/repos/$repo"
+if ($authCheck -ne 200) {
+    Fail "token / repo check failed (HTTP $authCheck). Token scope may need `repo`."
 }
-Ok 'repo accessible'
+Ok 'token + repo OK'
 
-# 5. 检查 workflow 文件已经 push 上去
-Step '5. Verify workflows pushed'
-$ciExists = gh api "repos/$repo/contents/.github/workflows/ci.yml" 2>&1
-$amExists = gh api "repos/$repo/contents/.github/workflows/dependabot_auto_merge.yml" 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Fail 'workflows not pushed yet. Run: git push -u origin master, then re-run this script'
+# 4. 验证 workflow 已 push
+Step '4. Verify workflows pushed'
+$ciExists = Gh-Api -Method GET -Path "/repos/$repo/contents/.github/workflows/ci.yml"
+$amExists = Gh-Api -Method GET -Path "/repos/$repo/contents/.github/workflows/dependabot_auto_merge.yml"
+if ($ciExists -ne 200 -or $amExists -ne 200) {
+    Fail "workflows not pushed yet (ci.yml=$ciExists, dependabot_auto_merge.yml=$amExists)"
 }
-Ok 'ci.yml + dependabot_auto_merge.yml found on remote'
+Ok 'ci.yml + dependabot_auto_merge.yml present'
 
-# 6. 配置 master 分支保护
-Step '6. Configure branch protection on master'
-# 等一次让 GitHub 注册新的 check (CI workflow 第一次跑完后才有)
-Write-Host '  (waiting 10s for GitHub to register the new CI check...)' -ForegroundColor DarkYellow
+# 5. 等 GitHub 注册新 check
+Step '5. Wait 10s for GitHub to register the CI check'
+Write-Host '  (CI check needs a few seconds to appear in branch protection UI)' -ForegroundColor DarkYellow
 Start-Sleep -Seconds 10
 
-# 取 check name (从最近一次 commit 跑过的 CI)
-$checkName = 'ci'
+# 6. PUT master branch protection
+Step '6. Configure branch protection on master'
+# Both `required_pull_request_reviews` and `restrictions` must be explicitly
+# null in the body, otherwise GitHub returns 422. strict=true means "branch
+# must be up-to-date with master before merge".
 $protection = @{
-    required_status_checks = @{
-        strict = $true
-        contexts = @($checkName)
+    required_status_checks             = @{
+        strict   = $true
+        contexts = @('ci')
     }
-    enforce_admins = $false
-    required_pull_request_reviews = $null
-    restrictions = $null
-    required_linear_history = $false
-    allow_force_pushes = $false
-    allow_deletions = $false
-    block_creations = $false
-    required_conversation_resolution = $false
+    enforce_admins                     = $false
+    required_pull_request_reviews      = $null
+    restrictions                       = $null
+    required_linear_history            = $false
+    allow_force_pushes                 = $false
+    allow_deletions                    = $false
+    block_creations                    = $false
+    required_conversation_resolution   = $false
 } | ConvertTo-Json -Depth 10
 
-$protection | Out-File -FilePath "$env:TEMP\protection.json" -Encoding utf8
-gh api -X PUT "repos/$repo/branches/master/protection" --input "$env:TEMP\protection.json" 2>&1 | Out-Null
-if ($LASTEXITCODE -ne 0) {
-    Warn 'PUT failed (branch may already be protected, or check name is wrong)'
-    Warn 'fallback: open this URL and configure manually:'
-    Write-Host ("    https://github.com/" + $repo + "/settings/branches") -ForegroundColor Yellow
+$code = Gh-Api -Method PUT -Path "/repos/$repo/branches/master/protection" -Body $protection
+if ($code -in @(200, 201, 204)) {
+    Ok ('master branch protected (HTTP ' + $code + ')')
 } else {
-    Ok 'master branch protected (CI check required)'
+    Warn ('PUT failed with HTTP ' + $code + '. Manual config may be needed:')
+    Write-Host ('    https://github.com/' + $repo + '/settings/branches') -ForegroundColor Yellow
 }
 
-# 7. 启用 Dependabot auto-merge
-Step '7. Enable Dependabot auto-merge'
-$autoMerge = @{
-    enabled = $true
-    allowed_merge_methods = @('squash')
-} | ConvertTo-Json -Depth 10
-$autoMerge | Out-File -FilePath "$env:TEMP\automerge.json" -Encoding utf8
-gh api -X PATCH "repos/$repo/automated-security-fixes" --input "$env:TEMP\automerge.json" 2>&1 | Out-Null
-# auto-merge 通过 workflow 完成, 不需要额外 API. 这里只是保险地打开 auto-merge 按钮.
-if ($LASTEXITCODE -eq 0) {
-    Ok 'auto-merge toggle enabled (Dependabot workflow will use it)'
-} else {
-    Warn 'auto-merge toggle not enabled (Dependabot will still comment + open PR, merge via workflow)'
-}
-
-# 8. 总结
-Step '8. Done'
+# 7. 总结 (auto-merge 由 dependabot_auto_merge.yml workflow 处理, 不需要 repo-level toggle)
+Step '7. Done'
 Write-Host ''
 Ok ('Setup complete for ' + $repo)
 Write-Host ''
+Write-Host 'Notes:' -ForegroundColor Cyan
+Write-Host '  - auto-merge 由 .github/workflows/dependabot_auto_merge.yml 处理' -ForegroundColor Gray
+Write-Host '  - 不用 repo-level auto-merge 开关 (Dependabot PR 会自动 enable)' -ForegroundColor Gray
+Write-Host ''
 Write-Host 'Next steps:' -ForegroundColor Cyan
 Write-Host '  1. Verify branch protection:' -ForegroundColor Gray
-Write-Host ("     https://github.com/" + $repo + "/settings/branches") -ForegroundColor Gray
-Write-Host '  2. Wait for Dependabot first scan (up to 24h):' -ForegroundColor Gray
-Write-Host ("     https://github.com/" + $repo + "/network/updates") -ForegroundColor Gray
-Write-Host '  3. You can delete this script after verifying.' -ForegroundColor Gray
+Write-Host ('     https://github.com/' + $repo + '/settings/branches') -ForegroundColor Gray
+Write-Host '  2. Wait for first Dependabot scan (up to 24h):' -ForegroundColor Gray
+Write-Host ('     https://github.com/' + $repo + '/network/updates') -ForegroundColor Gray
+Write-Host '  3. Delete this script after verifying.' -ForegroundColor Gray
+Write-Host '  4. Revoke the GH_TOKEN you used here (it is a one-time secret).' -ForegroundColor Gray
