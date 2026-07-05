@@ -41,6 +41,14 @@ pxshe_app 版本历史。
 - 阶段 4 (测试 + 集成) 待开始
 - 阶段 5 (部署 + 监控) 待开始
 
+### Added (CI/依赖自动更新)
+
+- `.github/dependabot.yaml` — 加 `groups` (合并 minor+patch) + `labels` (deps/flutter/ci) + `open-pull-requests-limit` + 忽略 major
+- `.github/workflows/ci.yml` — PR/push 跑 `flutter test` + `analyze` + `ai.ps1 all` + `doc_sync_audit`
+- `.github/workflows/dependabot_auto_merge.yml` — patch + minor 自动 squash-merge,major 评论提醒人工 review
+- `docs/CONTRIBUTING.md §9` — 自动依赖更新流程说明
+- `docs/REFERENCE.md §15` — caret 约束 + Dependabot 行为表
+
 ## [0.1.0] - 2026-07-01
 
 ### Added

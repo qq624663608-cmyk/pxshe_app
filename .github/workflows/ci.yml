@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+
+# 单 job, 跑完整的: pub get + analyze + test + ai.ps1 all
+# 避免拆 jobs (那样会重复 pub get, 时间 x2)
+jobs:
+  ci:
+    name: flutter test + analyze + ai.ps1 all
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.0"
+          channel: stable
+          cache: true
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install PowerShell (for ai.ps1)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y powershell
+
+      - name: flutter analyze
+        run: flutter analyze --no-fatal-warnings --no-fatal-infos
+
+      - name: flutter test
+        run: flutter test --no-pub --reporter=compact
+
+      - name: ai.ps1 all (4 doc lints)
+        run: pwsh tool/ai.ps1 all
+
+      - name: doc_sync_audit
+        run: pwsh tool/doc_sync_audit.ps1

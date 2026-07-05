@@ -168,4 +168,23 @@
 
 ---
 
-*最后更新: 2026-07-01*
+## 15. 自动依赖更新 (Dependabot + auto-merge)
+
+`pubspec.yaml` 用 caret 约束 (`^x.y.z`),配合 **Dependabot + auto-merge** 让 patch + minor 升级全自动。
+
+| 升级类型 | 触发方 | CI | 自动合并? |
+|---|---|---|---|
+| patch (0.0.x) | Dependabot daily | 自动跑 | ✅ auto-merge |
+| minor (0.x.0) | Dependabot daily | 自动跑 | ✅ auto-merge |
+| major (x.0.0) | 手动 `flutter pub upgrade --major-versions` | 必跑 | ❌ 人工 review |
+
+**强制配套工具**:
+- `.github/dependabot.yaml` — daily 扫 `pub` + `github-actions`, major 忽略
+- `.github/workflows/ci.yml` — PR 跑 `flutter test` + `analyze` + `ai.ps1 all`
+- `.github/workflows/dependabot_auto_merge.yml` — patch + minor 自动 squash-merge
+
+详见 [CONTRIBUTING.md §9](./CONTRIBUTING.md)。
+
+---
+
+*最后更新: 2026-07-06 — 加 §15 自动依赖更新说明*

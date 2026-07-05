@@ -4,7 +4,35 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    labels:
+      - "deps"
+      - "ci"
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        apply-to: all
+        exclude-patterns: ["*major*"]
+    # Major 版本升级不发 PR,需要手动 bump
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
   - package-ecosystem: "pub"
     directory: "/"
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 10
+    labels:
+      - "deps"
+      - "flutter"
+    groups:
+      # 把所有 patch+minor 升级合并成 1 个 PR (避免洪水)
+      pub-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+        exclude-patterns: ["*major*"]
+    # Major 版本升级不发 PR,只 minor+patch 由 auto-merge workflow 处理
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
