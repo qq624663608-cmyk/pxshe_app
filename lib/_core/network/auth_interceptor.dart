@@ -1,16 +1,20 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({this.tokenProvider});
 
-  final String? Function()? tokenProvider;
+  /// Token lookup. May be sync (returns `String?`) or async
+  /// (returns `Future<String?>`) — `FutureOr` accepts both.
+  final FutureOr<String?> Function()? tokenProvider;
 
   @override
-  void onRequest(
+  Future<void> onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
-  ) {
-    final token = tokenProvider?.call();
+  ) async {
+    final token = await tokenProvider?.call();
     if (token != null && token.isNotEmpty) {
       options.headers['token'] = token;
     }
