@@ -30,11 +30,11 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 |---|---|---|---|
 | **0** 规则 | AGENTS/18 docs/10 ADR/tool | ✅ 100% | 7 |
 | **1** 骨架 | ApiClient/ErrorHandler/AppColors/registration/bootstrap | ✅ 100% | 1+6+8+16 |
-| **1.5** UI | LoginPage/RegisterPage/HomePage 写真实 | 🟡 33% | 6+11 |
-| **2** IM | OpenIM 集成 | ❌ 0% | 1+6+18 |
+| **1.5** UI | LoginPage/RegisterPage/HomePage 写真实 | 🟡 75% (端到端未跑过) | 6+11 |
+| **2** IM | OpenIM 集成 (代码+测试) | 🟡 90% (端到端未跑过) | 1+6+18 |
 | **3** 业务 | universe/table/row | ❌ 0% | 1+6+10 |
 | **4** 质量 | 集成测试/异常路径/Code Review | ❌ 0% | 2+8+9 |
-| **5** 工程化 | CI/CD/灰度/监控/可观测性 | ❌ 0% | 3+4+5+12+14 |
+| **5** 工程化 | CI/CD/灰度/监控/可观测性 | 🟡 30% (CI workflow 已有) | 3+4+5+12+14 |
 | **6** 美化 | 动画/微交互/空状态/品牌色 | ❌ 0% | 6 (深化) |
 | **7** 高级 | 推送/文件/语音 (按需) | ❌ 0% | 18 (扩展) |
 | **8+** 长尾 | a11y/i18n/灾备/数据分析 | ❌ 0% | 11+13+15+17 |
@@ -42,7 +42,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 
 图例: ✅ 完成 | 🟡 部分 | ❌ 未开始
 
-**当前覆盖**: 8/18 = 44% (含部分覆盖)
+**当前覆盖**: 10/18 = 56% (含部分覆盖)
 
 ---
 
@@ -52,7 +52,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 |---|---|---|---|---|
 | 1 | 分层架构 | 1-3 | ✅ 100% | `lib/_core` `lib/modules/*` |
 | 2 | 测试金字塔 | 4 | ❌ 0% | `test/` |
-| 3 | CI/CD 流水线 | 5 | ❌ 0% | `.github/workflows/` |
+| 3 | CI/CD 流水线 | 5 | 🟡 50% | `.github/workflows/` (ci.yml + dependabot_auto_merge.yml 已有) |
 | 4 | 监控告警 | 5 | ❌ 0% | `lib/_core/monitoring/` (阶段 5) |
 | 5 | 灰度发布 | 5 | ❌ 0% | Feature flag (FEATURE_FLAGS.md) |
 | 6 | 设计系统 | 1+1.5+6 | 🟡 50% | `lib/_core/theme/` + LoginPage 已用 |
@@ -130,22 +130,33 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 
 ---
 
-## 阶段 2: OpenIM 集成 (❌ 0%, 4-5 天)
+## 阶段 2: OpenIM 集成 (🟡 90%, 4-5 天)
 
-| Commit | 内容 | 覆盖维度 |
-|---|---|---|
-| 2.1 | SDK 封装层 (`openim_sdk_wrapper.dart`) | 1 |
-| 2.2 | 登录串联 (login → imToken → SDK login) | 1 |
-| 2.3 | IM 实体 + Repository (Conversation/Message/Friend/Group) | 1 |
-| 2.4 | IM Bloc (Connection/Conversation/Message) | 1 |
-| 2.5 | IM UI (会话列表 / 聊天页 / 好友) | 1+6 |
-| 2.6 | 踢下线 + 重连监听 | 1+18 |
-| 2.7 | IM 测试 (mock SDK + Bloc test) | 2 |
+| Commit | 内容 | 覆盖维度 | 状态 |
+|---|---|---|---|
+| 2.0 | `IM_API_MAP.md` SSOT + Android/iOS 配置检查 | 1 | ✅ |
+| 2.1 | SDK 封装层 (`openim_sdk_wrapper.dart`) + ConnectionCubit | 1 | ✅ |
+| 2.2 | Conversation + ChatList (ConversationRepository + Cubit + Page) | 1 | ✅ |
+| 2.3 | Message + ChatPage (MessageRepository + Cubit + Page) | 1 | ✅ |
+| 2.4 | Friend + Contacts (FriendRepository + Cubit + Page) | 1 | ✅ |
+| 2.5 | Group + Profile (GroupRepository + Cubit + Page) | 1 | ✅ |
+| 2.6 | auth_bloc 集成 (AppLoaded 触发 `bootstrapIMAfterLogin/Logout`) | 1+18 | ✅ |
+| 2.7 | IM 测试 (48 个测试: 5 Cubit + 5 Repository + hard_rules_lint) | 2 | ✅ |
+| 2.8 | 文档同步 (CHANGELOG / KNOWLEDGE_GRAPH / ARCHITECTURE / PAGE_CLASSIFICATION) | 7 | ✅ |
+| 2.9 | 5 处文档修复 (CACHE_STRATEGY / IM_INTEGRATION §2.2/§3/§6 / AI_GUIDE) | 7 | ✅ |
+| 2.10 | `tool/doc_sync_audit.ps1` (新增) | 7 | ✅ |
+| 2.11 | CI/Dependabot/auto-merge (`.github/workflows/ci.yml` + `dependabot_auto_merge.yml`) | 3 | ✅ |
+| 2.12 | 远端仓库 public + branch protection (require CI ci) | 3 | ✅ |
+| 2.13 | 端到端真机验证 (登录→聊天页 / 消息收发 / 踢下线) | 1+18 | ❌ **未做** |
 
 ### 阶段 2 验收
-- [ ] 登录后能进 IM 聊天页
-- [ ] 收到消息能显示
-- [ ] 踢下线能自动跳登录
+- [x] 242/242 测试通过
+- [x] flutter analyze 0 errors
+- [x] ai.ps1 all 4/4 pass
+- [x] doc_sync_audit pass
+- [ ] ❌ 登录后能进 IM 聊天页 (端到端)
+- [ ] ❌ 收到消息能显示 (端到端)
+- [ ] ❌ 踢下线能自动跳登录 (端到端)
 
 ---
 
@@ -267,7 +278,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 
 ---
 
-*最后更新: 2026-07-01 — 阶段 1 收尾中, 18 维度 39% 覆盖*
+*最后更新: 2026-07-06 — 阶段 1+2 代码+测试收官 (阶段 2 端到端真机验证待做), 18 维度 56% 覆盖*
 
 ## v0.1.0 (阶段 1 收尾)
 
