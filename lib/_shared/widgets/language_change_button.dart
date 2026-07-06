@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../blocs/locale_cubit.dart';
-import '../l10n/gen/app_localizations.dart';
+import '../../l10n/gen/app_localizations.dart';
 
 class LanguageChangeButton extends StatelessWidget {
   const LanguageChangeButton({super.key});

@@ -122,6 +122,10 @@ Text(l10n.layoutPageHome);
 **禁止**:
 - ❌ 业务代码 `import 'package:easy_localization/...'` + `context.tr('xxx.yyy')` (已删, 见 AGENTS § 54)
 - ❌ 业务代码自己用 `Navigator.push` 切语言 — 必须走 `LocaleCubit` + `MaterialApp.router.locale`
+- ❌ `import '<...>/_shared/l10n/gen/app_localizations.dart'` — 生成文件在 `lib/l10n/gen/` (l10n.yaml `output-dir`), 是 `lib/` 的兄弟, **不**是 `_shared/` 的子目录
+  - ✅ `lib/_shared/widgets/foo.dart` 用 `import '../../l10n/gen/app_localizations.dart';`
+  - ✅ `lib/_core/.../foo.dart` 用 `import '../../../../l10n/gen/app_localizations.dart';`
+  - ✅ `lib/modules/<m>/foo.dart` 用 `import '../../l10n/gen/app_localizations.dart';`
 
 ---
 

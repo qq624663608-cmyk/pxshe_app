@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../_core/app_router.dart';
 import '../_core/di.dart';
 import '../_core/layout/adaptive_layout/adaptive_destination.dart';
+import '../l10n/gen/app_localizations.dart';
 import '../modules/auth/domain/auth_repository.dart';
 import '../modules/im/bloc/connection_cubit.dart' as im;
 import 'features/error/error_401_page.dart';
@@ -11,7 +12,6 @@ import 'features/landing/page/landing_page_loader.dart';
 import 'features/settings/page/settings_page.dart';
 import 'features/splash/page/splash_page.dart';
 import 'features/home/page/home_page.dart';
-import 'l10n/gen/app_localizations.dart';
 
 enum SharedNavTab implements NavTab { none, home, settings }
 

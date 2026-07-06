@@ -310,6 +310,8 @@ Widget build(BuildContext context) {
 **更早 Bug (1b9871a)**: 完全漏调 → navTabs 空 → `firstNavRoute()` fallback `/` →
 死循环 → 404。
 
+**Bug 教训 (commit path-fix)**: `flutter run` 报 `Error when reading 'lib/_shared/l10n/gen/app_localizations.dart'`。真因: l10n.yaml `output-dir: lib/l10n/gen` 把生成文件放在 `lib/l10n/gen/` (是 `lib/` 的**兄弟**, **不**是 `_shared/` 的子目录), 6cfe911 import 时全部用 `_shared/l10n/...` 写错。修法: 8 文件 import 路径改对。教训: `flutter analyze` 不报"找不到文件"型 import 错误 (Dart 把这当 compile-time 不当 lint), **真机编译才会暴露**, 见 `BUILDING_BLOCKS.md § 3.1` 禁止条款。
+
 ---
 
 ## 7. 模块依赖矩阵

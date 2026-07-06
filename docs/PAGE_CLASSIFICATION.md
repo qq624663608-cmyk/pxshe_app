@@ -116,6 +116,8 @@ AdaptiveDestination(title: context.tr('layoutPage.home'), ...);  // easy_localiz
 
 加新 key 流程: `app_en.arb` → `app_zh.arb` → `flutter gen-l10n` → 调 `l10n.xxxCamelCase`。详见 `docs/I18N.md § 3.4`。
 
+**Import 路径** (常踩坑): 生成文件在 `lib/l10n/gen/`,不是 `lib/_shared/l10n/gen/` 或 `lib/modules/<m>/l10n/gen/`。见 `BUILDING_BLOCKS.md § 3.1` 禁止条款。
+
 ---
 
 *最后更新: 2026-07-06 — 阶段 2.5 ProfilePage 完成 (+ 阶段 2.1-2.4)*

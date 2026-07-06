@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../_core/app_router.dart';
 import '../../_core/di.dart';
 import '../../_core/layout/adaptive_layout/adaptive_destination.dart';
-import '../../_shared/l10n/gen/app_localizations.dart';
+import '../../l10n/gen/app_localizations.dart';
 import '../registration/data/registration_service.dart';
 import '../registration/domain/entities/registration_config.dart';
 import '../registration/features/register_page.dart';

@@ -8,7 +8,7 @@ import '../../_core/di.dart';
 import '../../_core/theme.dart';
 import '../../_shared/blocs/locale_cubit.dart';
 import '../../_shared/blocs/theme_mode_cubit.dart';
-import '../../_shared/l10n/gen/app_localizations.dart';
+import '../../../l10n/gen/app_localizations.dart';
 import '../../modules/auth/bloc/auth_bloc.dart';
 
 class App extends StatelessWidget {

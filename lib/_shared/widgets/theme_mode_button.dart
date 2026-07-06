@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../blocs/theme_mode_cubit.dart';
-import '../l10n/gen/app_localizations.dart';
+import '../../l10n/gen/app_localizations.dart';
 
 class ThemeModeButton extends StatelessWidget {
   const ThemeModeButton({

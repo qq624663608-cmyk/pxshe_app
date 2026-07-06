@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../l10n/gen/app_localizations.dart';
 import '../../../widgets/language_change_button.dart';
 import '../../../widgets/theme_mode_button.dart';
+import '../../../../l10n/gen/app_localizations.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
