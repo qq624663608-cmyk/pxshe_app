@@ -37,7 +37,9 @@ FutureOr<String?> authRouteGuard(BuildContext context, GoRouterState state) asyn
   if (authBloc.state.status == AuthStatus.authenticated) {
     return null;
   } else {
-    return "/errors/401";
+    // Unauthenticated → bounce to /login. (Was /errors/401, but a 401
+    // page would prevent the user from signing in.)
+    return "/login";
   }
 }
 
@@ -72,18 +74,47 @@ FutureOr<String?> initialRedirect(BuildContext context, GoRouterState state) {
   }
 }
 
+/// A `ChangeNotifier` that the AuthBloc stream drives. Pairs with
+/// [AppRouter.refreshListenable] so that every auth-state change
+/// triggers GoRouter to re-evaluate its `redirect:` guards
+/// (industry-standard pattern, see go_router docs on `refreshListenable`).
+class _AuthRouterRefreshNotifier extends ChangeNotifier {
+  /// Subscribe once in `App.build`. All AuthBloc state changes
+  /// invoke the callback, which calls [notifyListeners].
+  void bind(Stream<dynamic> authBlocStream) {
+    _subscription = authBlocStream.listen((_) => notifyListeners());
+  }
+
+  StreamSubscription<dynamic>? _subscription;
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+}
+
 class AppRouter {
   final List<RouteBase> routes;
 
   AppRouter({required this.routes});
 
+  /// Notifier driven by AuthBloc.stream. See [_AuthRouterRefreshNotifier].
+  final _refreshNotifier = _AuthRouterRefreshNotifier();
+
   late final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: "/",
+    refreshListenable: _refreshNotifier,
     errorPageBuilder: (_, __) => NoTransitionPage<void>(child: const Error404Page()),
     debugLogDiagnostics: false,
     routes: routes,
   );
+
+  /// Call this once from `App.build` to wire AuthBloc.stream → notifier.
+  void bindAuthBloc() {
+    _refreshNotifier.bind(di<AuthBloc>().stream);
+  }
 }
 
 class FadeTransitionPage extends CustomTransitionPage<void> {

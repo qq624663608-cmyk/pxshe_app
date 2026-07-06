@@ -28,6 +28,12 @@ List<AdaptiveDestination> getAuthNavTabs(BuildContext context) {
 
 List<GoRoute> authRoutes() {
   return [
+    // /login and /register use unAuthRouteGuard (NOT authRouteGuard).
+    // unAuthRouteGuard redirects already-logged-in users to firstNavRoute
+    // and lets unauthenticated users through. Works in tandem with
+    // AppRouter.refreshListenable which re-evaluates these on every
+    // AuthBloc state change — so after a successful login, the guard
+    // pushes the user to /home automatically.
     GoRoute(
       path: '/login',
       redirect: unAuthRouteGuard,

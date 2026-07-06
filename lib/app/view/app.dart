@@ -5,7 +5,6 @@ import '../../_core/app_router.dart';
 import '../../_core/di.dart';
 import '../../_core/theme.dart';
 import '../../_shared/blocs/theme_mode_cubit.dart';
-import '../../_shared/features/splash/page/splash_page.dart';
 import '../../modules/auth/bloc/auth_bloc.dart';
 
 class App extends StatelessWidget {
@@ -13,6 +12,11 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final router = di<AppRouter>();
+    // Bind AuthBloc.stream → router.refreshListenable so that every
+    // auth-state change re-evaluates route guards (industry standard).
+    router.bindAuthBloc();
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<ThemeModeCubit>(create: (_) => di<ThemeModeCubit>()),
@@ -26,7 +30,7 @@ class App extends StatelessWidget {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: themeMode,
-            routerConfig: di<AppRouter>().router,
+            routerConfig: router.router,
           );
         },
       ),

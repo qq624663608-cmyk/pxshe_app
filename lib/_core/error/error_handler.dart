@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:go_router/go_router.dart';
 
+import '../app_router.dart';
+import '../logger.dart';
 import '../theme/app_durations.dart';
 import 'api_exception.dart';
 
@@ -34,10 +37,18 @@ class ErrorHandler {
     _showSnack(context, message);
   }
 
+  /// Try 3 messenger sources in order:
+  /// 1. local context's `ScaffoldMessenger.of` (fastest, normal case)
+  /// 2. rootNavigatorKey's context (fallback if local fails)
+  /// 3. log (last resort so user at least sees something in adb logcat)
   static void _showSnack(BuildContext context, String message) {
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      final messenger = ScaffoldMessenger.maybeOf(context);
-      if (messenger == null) return;
+      final messenger = ScaffoldMessenger.maybeOf(context) ??
+          _rootMessenger();
+      if (messenger == null) {
+        Log.e('ErrorHandler: cannot show SnackBar, no ScaffoldMessenger: $message');
+        return;
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),
@@ -45,5 +56,11 @@ class ErrorHandler {
         ),
       );
     });
+  }
+
+  static ScaffoldMessengerState? _rootMessenger() {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return null;
+    return ScaffoldMessenger.maybeOf(ctx);
   }
 }
