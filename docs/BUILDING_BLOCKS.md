@@ -127,6 +127,34 @@ Text(l10n.layoutPageHome);
   - ✅ `lib/_core/.../foo.dart` 用 `import '../../../../l10n/gen/app_localizations.dart';`
   - ✅ `lib/modules/<m>/foo.dart` 用 `import '../../l10n/gen/app_localizations.dart';`
 
+### 3.2 Dev 工具 (`_shared/dev/`,阶段 2.16 阶段 2 收尾用)
+
+> **dev-only** — 仅 `kDebugMode` 时注册路由,生产 build tree-shake 掉。
+
+```dart
+// lib/_shared/dev/dev_routes.dart
+// 列出所有 16 路由的元数据 (label / path / description / icon / group),
+// devRoutes() 返回 [/dev] 路由 (kDebugMode 为 false 时空 list)
+context.go('/dev');  // 跳到 DevMenuPage
+
+// 入口 (HomePage AppBar 加 bug_report 图标, 仅 dev build 显示)
+if (const bool.fromEnvironment('dart.vm.product') == false)
+  IconButton(icon: Icon(Icons.bug_report), onPressed: () => context.go('/dev'));
+
+// DevMenuPage 列出 16 路由 (按 group 分组):
+// 业务域 / IM 域 / 认证域 / 错误域 / 阶段 3 占位
+```
+
+**用途**:
+- 阶段 2 收尾: 手动测试每个路由 (e2e 验证)
+- 阶段 3 业务模块: 测试新增的 universe 路由
+- 阶段 4 集成测试: 模拟用户路径
+
+**禁止**:
+- ❌ 把 dev 路由当生产功能 (release build 必不含)
+- ❌ 在业务 widget 调 dev 工具 (违反 § 50 复用原则, dev 工具只服务于 dev)
+- ❌ dev 工具 import 业务代码 (反向依赖)
+
 ---
 
 ## 4. SnackBar helpers (必用)

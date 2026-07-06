@@ -7,6 +7,7 @@ import '../_core/layout/adaptive_layout/adaptive_destination.dart';
 import '../_core/layout/adaptive_layout/navigation_service.dart';
 import 'blocs/locale_cubit.dart';
 import 'blocs/theme_mode_cubit.dart';
+import 'dev/dev_routes.dart';
 import 'shared_routes.dart';
 
 Future<void> registerSharedModule() async {
@@ -20,7 +21,9 @@ Future<void> registerSharedModule() async {
   di.registerSingleton<NavigationService>(NavigationService());
 
   //* register routes and navigation tabs
-  di<List<RouteBase>>(instanceName: Constants.mainRouesDiKey).addAll(sharedRoutes());
+  di<List<RouteBase>>(instanceName: Constants.mainRouesDiKey)
+    ..addAll(sharedRoutes())
+    ..addAll(devRoutes());  // dev-only, kDebugMode gated inside
 }
 
 void registerSharedModuleWithContext(BuildContext context) {

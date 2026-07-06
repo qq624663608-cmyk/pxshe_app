@@ -644,6 +644,29 @@ _core / _shared -> 0 依赖 modules / app
 - ❌ 看 chat 域模式就类推其他域 (4 域各自独立,WS/HTTP 走不同进程)
 - ❌ 业务代码直接 HTTP/WS 调 `api.pxshe.com` / `ws.pxshe.com` (AGENTS §15)
 
+### 第 56 条:dev 路由硬约束
+
+**`/dev` 路由仅 `kDebugMode` 可见,生产 build 不应有此路由**。
+
+| 项 | 约束 |
+|---|---|
+| 注册位置 | `lib/_shared/dev/dev_routes.dart` `devRoutes()` 函数 |
+| 触发条件 | `kDebugMode == true` (release 返空 list) |
+| 入口 | HomePage AppBar 右上角 `bug_report` 图标 (也用 `dart.vm.product` 守门) |
+| 路由内容 | `DevMenuPage` 列出 16 路由,按 group 分组 (业务域/IM 域/认证域/错误域/阶段 3 占位) |
+| 路由数据 | `DevRouteEntry` (label/path/description/icon/group) 硬编码在 `dev_routes.dart` |
+
+**禁止**:
+- ❌ 业务代码 import `dev_*` widget (反向依赖,违反 § 50 复用原则)
+- ❌ 把 dev 路由当生产功能 (release 不应有 `/dev`)
+- ❌ 在 dev 工具加业务逻辑 (dev 工具只服务于 dev,生产不带)
+- ❌ 绕过 `kDebugMode` 守卫 (硬约束)
+
+详见:
+- `docs/BUILDING_BLOCKS.md` § 3.2 — Dev 工具 (`_shared/dev/`)
+- `docs/PAGE_CLASSIFICATION.md` — `/dev` 路由行
+- `docs/ARCHITECTURE.md` § 6 — 路由表 + dev 路由说明
+
 ---
 
-*最后更新: 2026-07-06 — 4 域架构对齐 (commit 2.16) + l10n 迁移 intl gen-l10n*
+*最后更新: 2026-07-06 — `/dev` 路由 (commit 阶段 2.16)*

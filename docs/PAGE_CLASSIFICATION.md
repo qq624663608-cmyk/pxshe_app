@@ -80,6 +80,7 @@
 | `/universe/:id` (阶段 3) | `authRouteGuard` | UniverseDetailPage | universe |
 | `/universe/:id/table/:name` (阶段 3) | `authRouteGuard` | RowListPage | row |
 | `/universe/:id/table/:name/edit` (阶段 3) | `authRouteGuard` | RowEditPage | row |
+| `/dev` (阶段 2.16 dev-only) | 无 | DevMenuPage | _shared |
 
 ### 守卫说明
 

@@ -36,6 +36,15 @@ class HomePage extends StatelessWidget {
             ),
           ),
           actions: [
+            // Dev-only: opens the /dev menu listing every route. Registered
+            // in devRoutes() only when kDebugMode is true, so production
+            // builds tree-shake it away. See docs/ARCHITECTURE.md §6.
+            if (const bool.fromEnvironment('dart.vm.product') == false)
+              IconButton(
+                icon: const Icon(Icons.bug_report, color: AppColors.textPrimary),
+                tooltip: 'Dev menu',
+                onPressed: () => context.go('/dev'),
+              ),
             IconButton(
               icon: const Icon(Icons.logout, color: AppColors.textPrimary),
               tooltip: 'Logout',
