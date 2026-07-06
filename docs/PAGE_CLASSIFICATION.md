@@ -65,11 +65,13 @@
 | `/register` | `unAuthRouteGuard` | RegisterPage | registration |
 | `/home` | `authRouteGuard` | HomePage | _shared |
 | `/settings` | `authRouteGuard` | SettingsPage | _shared |
-| `/im/status` (阶段 2.1 ✅) | `authRouteGuard` | ConnectionStatusPage | im |
+| `/im/status` (阶段 2.1 ✅, 2.15 修地址) | `authRouteGuard` | ConnectionStatusPage | im |
 | `/chat_list` (阶段 2.2 ✅) | `authRouteGuard` | ChatListPage | im |
 | `/chat/:id` (阶段 2.3 ✅) | `authRouteGuard` | ChatPage | im |
 | `/contacts` (阶段 2.4 ✅) | `authRouteGuard` | ContactsPage | im |
 | `/profile` (阶段 2.5 ✅) | `authRouteGuard` | ProfilePage | im |
+
+**IM 后端地址** (阶段 2.15 修): `https://api.pxshe.com` / `wss://api.pxshe.com` (反代 443 → 10002,客户端**不带端口**),详见 [docs/IM_INTEGRATION.md §9](./IM_INTEGRATION.md)。
 | `/universe` (阶段 3) | `authRouteGuard` | UniverseListPage | universe |
 | `/universe/:id` (阶段 3) | `authRouteGuard` | UniverseDetailPage | universe |
 | `/universe/:id/table/:name` (阶段 3) | `authRouteGuard` | RowListPage | row |

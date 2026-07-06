@@ -7,11 +7,13 @@
 
 ## 三域架构 (硬约束)
 
-| 域 | 端口 | 用途 | Flutter 端调用 |
+| 域 | 客户端地址 (无端口,反代) | 用途 | Flutter 端调用 |
 |---|---|---|---|
-| `api.pxshe.com` | 10002 | openim-server | SDK 内部 (禁直连) |
-| `chat.pxshe.com` | 10008 | chat-api | ✅ **Flutter 唯一业务域** |
-| `admin.pxshe.com` | 10009 | admin-api | ❌ **不调用** (超管用) |
+| `api.pxshe.com` | `https://api.pxshe.com` | openim-server (反代到 10002) | SDK 内部 (Flutter 不直连) |
+| `chat.pxshe.com` | `https://chat.pxshe.com` | chat-api (反代到 10008) | ✅ **Flutter 唯一业务域** |
+| `admin.pxshe.com` | `https://admin.pxshe.com` | admin-api (反代到 10009) | ❌ **不调用** (超管用) |
+
+**重要**: 客户端**不带端口** (跟 `chat.pxshe.com` 同样模式),反代在 443 上转发到后端 10002/10008/10009。直接写 `:10002` 不会走反代。
 
 详见 [backend-integration.md](./backend-integration.md) (旧版) 或 [IM_INTEGRATION.md](./IM_INTEGRATION.md)。
 

@@ -211,11 +211,11 @@ F:\wx\pxshe_app\
 
 ### 三域架构 (硬约束)
 
-| 域 | 端口 | 用途 | Flutter 端 |
-|---|---|---|---|
-| `api.pxshe.com` | 10002 | openim-server | SDK 内部 (禁直连) |
-| `chat.pxshe.com` | 10008 | chat-api | ✅ HTTP 业务调用 |
-| `admin.pxshe.com` | 10009 | admin-api | ❌ 不调用 |
+| 域 | 客户端地址 | 后端端口 (反代后) | 用途 | Flutter 端 |
+|---|---|---|---|---|
+| `api.pxshe.com` | `https://api.pxshe.com` | 10002 | openim-server | SDK 内部 (禁直连) |
+| `chat.pxshe.com` | `https://chat.pxshe.com` | 10008 | chat-api | ✅ HTTP 业务调用 |
+| `admin.pxshe.com` | `https://admin.pxshe.com` | 10009 | admin-api | ❌ 不调用 |
 
 ### Token 体系
 

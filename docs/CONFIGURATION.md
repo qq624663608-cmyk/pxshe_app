@@ -14,9 +14,9 @@ class Env {
   // 业务 API
   static const String apiBaseUrl = 'https://chat.pxshe.com';
 
-  // OpenIM
-  static const String openimApiUrl = 'wss://api.pxshe.com:10002';
-  static const String openimApiAddr = 'api.pxshe.com:10002';
+  // OpenIM (反代: 443 → openim-server:10002, 不带端口)
+  static const String openimApiUrl = 'wss://api.pxshe.com';
+  static const String openimApiAddr = 'https://api.pxshe.com';
 
   // Flavor (dev/staging/production)
   static const String flavor = String.fromEnvironment('FLAVOR', defaultValue: 'development');

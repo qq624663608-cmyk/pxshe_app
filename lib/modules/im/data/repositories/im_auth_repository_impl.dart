@@ -82,16 +82,18 @@ class ImAuthRepositoryImpl extends ChangeNotifier
   }
 
   String _apiAddr() {
+    // No port — backend uses a reverse proxy (api.pxshe.com:443 → openim-server:10002).
+    // Mirrors the chat domain pattern (chat.pxshe.com:443 → chat-api).
     return const String.fromEnvironment(
       'IM_API_ADDR',
-      defaultValue: 'https://api.pxshe.com:10002',
+      defaultValue: 'https://api.pxshe.com',
     );
   }
 
   String _wsAddr() {
     return const String.fromEnvironment(
       'IM_WS_ADDR',
-      defaultValue: 'wss://api.pxshe.com:10002',
+      defaultValue: 'wss://api.pxshe.com',
     );
   }
 

@@ -338,10 +338,13 @@ await OpenIM.iMManager.login(
 
 ## 9. 网络协议
 
-| 连接 | 协议 | 端口 |
-|---|---|---|
-| WebSocket | `wss://api.pxshe.com` | 10002 (TLS) / 10003 (TCP) |
-| HTTP API | SDK 内部用 | 同上 |
+| 连接 | 协议 | 客户端地址 (Flutter 写) | 后端 (反代后) |
+|---|---|---|---|
+| WebSocket | `wss://` | `wss://api.pxshe.com` (默认 443) | nginx → `openim-server:10002` |
+| HTTP API | `https://` | `https://api.pxshe.com` (默认 443) | nginx → `openim-server:10002` |
+
+**重要**: **客户端不带端口** (跟 `chat.pxshe.com` 同样模式),反代在 443 上转发到后端 10002。
+直接写 `:10002` 不会走反代,会被 GFW 拦 (海外主机常见)。
 
 Flutter 端**不直接连**, 通过 SDK 间接通信。
 

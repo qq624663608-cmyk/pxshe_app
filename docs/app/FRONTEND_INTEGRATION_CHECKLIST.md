@@ -11,17 +11,19 @@
 **Flutter 客户端调的是 `chat.pxshe.com`,不是 `admin.pxshe.com`。**
 
 ```
-https://api.pxshe.com      → openim-server  :10002  IM 核心 (被 SDK 调用,禁直连)
-https://chat.pxshe.com     → chat-api       :10008  ✅ Flutter 客户端走这个
-https://admin.pxshe.com    → admin-api      :10009  超管用,Flutter 不应该用
+https://api.pxshe.com      → openim-server  (反代: 443 → 10002)  IM 核心 (被 SDK 调用,禁直连)
+https://chat.pxshe.com     → chat-api       (反代: 443 → 10008)  ✅ Flutter 客户端走这个
+https://admin.pxshe.com    → admin-api      (反代: 443 → 10009)  超管用,Flutter 不应该用
 ```
+
+**重要**: 客户端**不带端口**,全走 443 反代。直接 `:10002` 写 SDK 不会走反代,会被 GFW 拦 (海外主机常见)。
 
 | Flutter 客户端业务 | 走哪个域 | 方式 |
 |--------------------|---------|------|
 | 用户登录/注册 | `chat.pxshe.com` | HTTP 调 `/account/login` 等 |
 | IM 消息收发 | SDK 自动 | `openim-sdk-flutter` 内部连 openim-api |
 | **宇宙业务 CRUD** | `chat.pxshe.com` | HTTP 调 `/business/universe/*` |
-| 直接 HTTP 调 openim-api | ❌ 禁止直连 | 10002 |
+| 直接 HTTP 调 openim-api | ❌ 禁止直连 | (反代 443) |
 
 ⚠️ **历史说明**: 早期版本误把所有 URL 写成 `admin.pxshe.com`,已修正。**所有 Flutter 端调用必须改成 `https://chat.pxshe.com/business/*`**。
 
