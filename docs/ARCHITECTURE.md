@@ -244,7 +244,9 @@ router.bindAuthBloc();  // 一次性绑定
 
 ### 6.6 启动时序 (硬约束)
 
-`initAfterRunApp(context)` **必须**在 `App.build` 里调, 否则 navTabs 列表是空, 路由守卫死循环。
+`initAfterRunApp(context)` **必须**在 `MaterialApp.router.builder` 里调, **不能**在
+`App.build` 顶层调 — 后者 context 未经 EasyLocalization wrap, `context.tr()` 抛
+`LocalizationNotFoundException`。
 
 ```dart
 // lib/app/view/app.dart
@@ -252,20 +254,35 @@ router.bindAuthBloc();  // 一次性绑定
 Widget build(BuildContext context) {
   final router = di<AppRouter>();
   router.bindAuthBloc();
-  AppModules.initAfterRunApp(context);  // ← 缺这行 = 404
 
-  return MultiBlocProvider(...);
+  return MultiBlocProvider(...,
+    child: BlocBuilder<ThemeModeCubit, ThemeMode>(
+      builder: (themeContext, themeMode) {
+        return MaterialApp.router(
+          routerConfig: router.router,
+          builder: (innerContext, child) {
+            AppModules.initAfterRunApp(innerContext);  // ← context 已 wrap
+            return child!;
+          },
+        );
+      },
+    ),
+  );
 }
 ```
 
 | 步骤 | 调什么 | 在哪调 | 原因 |
 |---|---|---|---|
 | 1 | `Bootstrap.init()` | `main.dart` | 无 `BuildContext` 的初始化 (DI / HTTP / DB) |
-| 2 | `App.build` + `AppModules.initAfterRunApp(context)` | `App.build` | 需要 `BuildContext` (注入 navTabs) |
+| 2 | `AppModules.initAfterRunApp(context)` | `MaterialApp.router.builder` | context 经过了 MaterialApp + EasyLocalization + Router |
 | 3 | `router.bindAuthBloc()` | `App.build` | 绑 AuthBloc.stream → refreshListenable |
 
-**Bug 教训 (1b9871a)**: 漏第 2 步 → `firstNavRoute()` 拿到空 list → fallback `"//"` →
-`initialRedirect` state=authenticated → return `firstNavRoute() = "/"` → 死循环 → 404。
+**Bug 教训 (3b1fca8)**: 把 `initAfterRunApp(context)` 放在 `App.build` 顶层 → context
+未经 EasyLocalization → `context.tr('layoutPage.profile')` 抛
+`LocalizationNotFoundException` → 红屏。修法: 移到 `MaterialApp.router.builder` 里,
+`initAfterRunApp` 幂等 (`navTabs.clear() + addAll()`), 每次 rebuild 调无副作用。
+
+**更早 Bug (1b9871a)**: 完全漏调 → navTabs 空 → `firstNavRoute()` fallback `/` → 死循环 → 404。
 
 ---
 

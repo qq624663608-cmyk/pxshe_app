@@ -17,10 +17,6 @@ class App extends StatelessWidget {
     // Bind AuthBloc.stream → router.refreshListenable so that every
     // auth-state change re-evaluates route guards (industry standard).
     router.bindAuthBloc();
-    // Populate navTabs (required by firstNavRoute used in route guards).
-    // Idempotent: clears + re-adds on every build, but build only runs
-    // when the parent rebuilds this widget — which is rare in production.
-    AppModules.initAfterRunApp(context);
 
     return MultiBlocProvider(
       providers: [
@@ -28,7 +24,7 @@ class App extends StatelessWidget {
         BlocProvider<AuthBloc>(create: (_) => di<AuthBloc>()),
       ],
       child: BlocBuilder<ThemeModeCubit, ThemeMode>(
-        builder: (context, themeMode) {
+        builder: (themeContext, themeMode) {
           return MaterialApp.router(
             title: 'pxshe',
             debugShowCheckedModeBanner: false,
@@ -36,6 +32,17 @@ class App extends StatelessWidget {
             darkTheme: darkTheme,
             themeMode: themeMode,
             routerConfig: router.router,
+            // Populate navTabs here — `builder`'s context is wrapped by
+            // MaterialApp + EasyLocalization + Router, so `context.tr(...)`
+            // in `getAuthNavTabs` works. Calling it in `App.build` directly
+            // crashes with `LocalizationNotFoundException` because
+            // EasyLocalization hasn't wrapped the outer context yet.
+            // `initAfterRunApp` is idempotent (navTabs.clear() + addAll()),
+            // so being invoked on every rebuild is safe.
+            builder: (innerContext, child) {
+              AppModules.initAfterRunApp(innerContext);
+              return child!;
+            },
           );
         },
       ),
