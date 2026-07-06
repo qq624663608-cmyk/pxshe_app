@@ -151,6 +151,10 @@ if (const bool.fromEnvironment('dart.vm.product') == false)
 
 → **两个文件互相 import 对方,无环**。`dev_routes.dart` 必须 import `dev_menu_page.dart` (否则 `DevMenuPage` 未定义);`dev_menu_page.dart` 必须 import `dev_routes.dart` (否则 `devRouteEntries` 未定义)。两者依赖是**单向 cross**: routes 引用 page, page 引用 entries, 不存在循环 import。
 
+**实现选择** (避免 Dart 3.0+ 集合语法坑):
+- ❌ 避免在 `ListView(children: [...])` 里用 `for ... ...[]` 嵌套 spread (缩进 1 错位就报"Can't find ']' to match '['")
+- ✅ 用 imperative `body = <Widget>[]; body.add(...)` 然后 `ListView(children: body)` — 简单明确,跟 26 条款 #20 "函数 ≤ 50 行" 一致 (build 函数 50 行内)
+
 **用途**:
 - 阶段 2 收尾: 手动测试每个路由 (e2e 验证)
 - 阶段 3 业务模块: 测试新增的 universe 路由

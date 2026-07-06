@@ -18,6 +18,52 @@ class DevMenuPage extends StatelessWidget {
       byGroup.putIfAbsent(e.group, () => []).add(e);
     }
 
+    final body = <Widget>[];
+    for (final group in byGroup.keys) {
+      body.add(
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(
+            group,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+      );
+      final entries = byGroup[group]!;
+      for (final e in entries) {
+        body.add(
+          ListTile(
+            leading: Icon(e.icon),
+            title: Text(e.label),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(e.path,
+                    style: const TextStyle(
+                        fontFamily: 'monospace', fontSize: 12)),
+                Text(e.description, style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.go(e.path),
+          ),
+        );
+      }
+    }
+    body.add(
+      const Padding(
+        padding: EdgeInsets.all(24),
+        child: Text(
+          '⚠️ 仅 kDebugMode 可见 (release build 不含此页)',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dev Menu'),
@@ -29,46 +75,7 @@ class DevMenuPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        children: [
-          for (final group in byGroup.keys) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-              child: Text(
-                group,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-            for (final e in byGroup[group]!)
-              ListTile(
-                leading: Icon(e.icon),
-                title: Text(e.label),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(e.path,
-                        style: const TextStyle(
-                            fontFamily: 'monospace', fontSize: 12)),
-                    Text(e.description, style: const TextStyle(fontSize: 12)),
-                  ],
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.go(e.path),
-              ),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              '⚠️ 仅 kDebugMode 可见 (release build 不含此页)',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
+      body: ListView(children: body),
     );
   }
 }
