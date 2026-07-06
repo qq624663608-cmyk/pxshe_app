@@ -186,6 +186,62 @@ pxshe_app/
     │ 检测到 authenticated → 跳 HomePage
 ```
 
+**注意**: 之前是在 LoginPage 内手动 `context.go('/home')`。现在改用 **§ 6.5 refreshListenable 模式**, 业务层 (Bloc) emit 状态 → GoRouter 自动重跑守卫 → 跳。**业务代码不再需要碰 Navigator**。
+
+---
+
+## 6.5 路由刷新机制 (refreshListenable) ⭐
+
+**背景**: 之前登录成功 spinner 一直转, **真因** 是 `AuthBloc` emit `authenticated` 后, GoRouter 不知道, 没人调 `context.go('/home')`。
+
+**修法 (go_router 官方推荐模式)**: `GoRouter` 监听 `Listenable`, 每次 `AuthBloc.stream` emit 触发 `notifyListeners()`, GoRouter 重新评估所有 `redirect:` 守卫。
+
+```dart
+// lib/_core/app_router.dart
+class _AuthRouterRefreshNotifier extends ChangeNotifier {
+  void bind(Stream<dynamic> authBlocStream) {
+    _subscription = authBlocStream.listen((_) => notifyListeners());
+  }
+  StreamSubscription? _subscription;
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+}
+
+class AppRouter {
+  final _refreshNotifier = _AuthRouterRefreshNotifier();
+  late final router = GoRouter(
+    refreshListenable: _refreshNotifier,
+    routes: routes,
+  );
+  void bindAuthBloc() => _refreshNotifier.bind(di<AuthBloc>().stream);
+}
+
+// lib/app/view/app.dart (App.build)
+final router = di<AppRouter>();
+router.bindAuthBloc();  // 一次性绑定
+```
+
+**go_router 17.x 提醒**: 该版本没 `GoRouterRefreshStream` (13.x+ 有, 17.x 删了), 自己包 `ChangeNotifier`。
+
+### 路由守卫双向跳转 (refreshListenable + guards)
+
+| 路径 | 守卫 | 已登录 | 未登录 |
+|---|---|---|---|
+| `/login` | `unAuthRouteGuard` | 跳 `/home` | 允许 |
+| `/register` | `unAuthRouteGuard` | 跳 `/home` | 允许 |
+| `/home` | `authRouteGuard` | 允许 | 跳 `/login` |
+| `/profile` | `authRouteGuard` | 允许 | 跳 `/login` |
+
+(`/home` 之前跳 `/errors/401`, 已改为 `/login` — 让用户能直接登录)
+
+**效果**:
+- 登录成功 → `AuthBloc` emit `authenticated` → `refreshListenable` 触发 → `/login` 的 `unAuthRouteGuard` 检测到已登录 → 跳 `/home`
+- 登出 → `AuthBloc` emit `unauthenticated` → `/home` 的 `authRouteGuard` 检测到未登录 → 跳 `/login`
+- 业务代码**零** `context.go()` 调用, 跳转全自动
+
 ---
 
 ## 7. 模块依赖矩阵

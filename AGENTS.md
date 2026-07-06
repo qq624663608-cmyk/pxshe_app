@@ -141,6 +141,11 @@ class AuthMegaBloc extends Bloc<AuthEvent, AuthState> {
 - ❌ 各 view 自行处理 401 / 403 / 404
 - ❌ 错误文案自己写(走 `ErrorMessages.t(key)`)
 
+**Snackbar fallback (硬约束)**: `ErrorHandler._showSnack` 必须用 3 级 fallback,
+`ScaffoldMessenger.maybeOf(context)` 找不到时 fallback 到 `rootNavigatorKey`,
+再找不到用 `Log.e` 兜底。**禁止**只 local maybeOf 找不到就静默 return
+(用户看不到错误也无处查)。
+
 详见 [docs/ERROR_HANDLING.md](./docs/ERROR_HANDLING.md)。
 
 ### 第 7 条:日志
@@ -519,9 +524,31 @@ _core / _shared -> 0 依赖 modules / app
 
 1. 这条改动属于哪个 module?
 2. 跨 module 吗? (走门面)
-3. 影响 docs/ 吗? (要同步)
+3. **影响 docs/ 吗? (强制: 改完代码必须同步文档, `tool/pre-commit.ps1` 会强制检查 `git diff --staged` 是否改了对应文档, 只 `Test-Path` 永远 true 不算改)**
 4. 覆盖率会降吗? (要补测)
 5. AGENTS.md 哪条相关? (要查)
+
+### 第 53.2 条:commit 前 doc-sync checklist
+
+每次 commit 前**必做**(`pre-commit` 钩子会强制):
+
+```
+[ ] git diff --staged --name-only 看改了哪些 .dart 文件
+[ ] 对照映射主动改文档:
+    - 改 lib/_core/        → docs/ARCHITECTURE.md 或 docs/KNOWLEDGE_GRAPH.md
+    - 改 lib/_shared/      → docs/BUILDING_BLOCKS.md
+    - 改 lib/modules/<m>/  → docs/PAGE_CLASSIFICATION.md
+    - 改 lib/modules/auth/data/ → docs/ERROR_HANDLING.md
+    - 改 lib/modules/<m>/data/ → docs/API.md
+    - 改 pubspec.yaml      → docs/REFERENCE.md + docs/LICENSE_INFO.md
+[ ] 跑 tool/doc_sync_audit.ps1 验证 code↔docs 内容一致
+[ ] pre-commit 钩子必须 pass (OK: doc sync check pass)
+```
+
+**禁止**:
+- ❌ 只看到 `OK: doc sync check pass` 就当 "文档已同步" — pre-commit 用 `Test-Path` 检查文件存在, 永远 true
+- ❌ 改完代码后不主动想"哪个文档该更新", 期待 hook catch
+- ❌ 用 `git commit --no-verify` 绕过 doc-sync (除非真无文档需要改)
 
 ---
 

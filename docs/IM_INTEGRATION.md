@@ -71,7 +71,9 @@ OpenIM.iMManager.addEventListener(
     onKickedOffline: () {
       // 1. 清 token
       authRepository.logout();
-      // 2. 跳登录
+      // 2. 跳登录 — 实际由 refreshListenable + authRouteGuard 自动处理
+      //    (AuthBloc logout → emit unauthenticated → /home guard 跳 /login)
+      //    这里保留 router.go 是兜底保险, 不依赖 navigation 即可完成跳转
       router.go('/login');
       // 3. toast
       showErrorSnackBar(context, '您的账号在另一台设备登录');
@@ -79,6 +81,20 @@ OpenIM.iMManager.addEventListener(
   ),
 );
 ```
+
+### 2.4 路由跳转 — refreshListenable 模式 (不推荐手动 router.go)
+
+**之前**: 在 widget 内手动 `router.go('/login')` / `router.go('/home')` 跳转。
+
+**现在 (推荐)**: 用 `refreshListenable` (详见 `docs/ARCHITECTURE.md § 6.5`):
+
+- `AuthBloc` emit 状态变化 → `GoRouter` 自动重跑 `redirect:` 守卫 → 自动跳
+- 业务代码**零** `router.go()` 调用, 跳转全自动
+- 但**仍保留** `router.go` 作为兜底保险, 因为 listener 异步触发可能略晚于回调
+
+**应用**:
+- `_onAuthLoginSucceeded`: 派发 event → AuthBloc emit → refreshListenable 触发 → `/login` 的 unAuthRouteGuard 跳 `/home`
+- `OnKickedOfflineListener.onKickedOffline`: `authRepository.logout()` → AuthBloc emit `unauthenticated` → refreshListenable 触发 → `/home` 的 authRouteGuard 跳 `/login`
 
 ---
 

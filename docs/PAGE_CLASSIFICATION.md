@@ -55,25 +55,35 @@
 
 ## 路由清单 (pxshe_app)
 
-| 路由 | 页面 | module |
+| 路由 | 守卫 | 页面 | module |
+|---|---|---|---|
+| `/` | `initialRedirect` | redirect (Splash) | - |
+| `/splash` | - | SplashPage | _shared |
+| `/errors/401` | - | Error401Page | _shared |
+| `/errors/404` | - | Error404Page | _shared |
+| `/login` | `unAuthRouteGuard` | LoginPage | auth |
+| `/register` | `unAuthRouteGuard` | RegisterPage | registration |
+| `/home` | `authRouteGuard` | HomePage | _shared |
+| `/settings` | `authRouteGuard` | SettingsPage | _shared |
+| `/im/status` (阶段 2.1 ✅) | `authRouteGuard` | ConnectionStatusPage | im |
+| `/chat_list` (阶段 2.2 ✅) | `authRouteGuard` | ChatListPage | im |
+| `/chat/:id` (阶段 2.3 ✅) | `authRouteGuard` | ChatPage | im |
+| `/contacts` (阶段 2.4 ✅) | `authRouteGuard` | ContactsPage | im |
+| `/profile` (阶段 2.5 ✅) | `authRouteGuard` | ProfilePage | im |
+| `/universe` (阶段 3) | `authRouteGuard` | UniverseListPage | universe |
+| `/universe/:id` (阶段 3) | `authRouteGuard` | UniverseDetailPage | universe |
+| `/universe/:id/table/:name` (阶段 3) | `authRouteGuard` | RowListPage | row |
+| `/universe/:id/table/:name/edit` (阶段 3) | `authRouteGuard` | RowEditPage | row |
+
+### 守卫说明
+
+| 守卫 | 检查 | 行为 |
 |---|---|---|
-| `/` | redirect | - |
-| `/splash` | SplashPage | _shared |
-| `/errors/401` | Error401Page | _shared |
-| `/errors/404` | Error404Page | _shared |
-| `/login` | LoginPage | auth |
-| `/register` | RegisterPage | registration |
-| `/home` | HomePage | _shared |
-| `/settings` | SettingsPage | _shared |
-| `/im/status` (阶段 2.1 ✅) | ConnectionStatusPage | im |
-| `/chat_list` (阶段 2.2 ✅) | ChatListPage | im |
-| `/chat/:id` (阶段 2.3 ✅) | ChatPage | im |
-| `/contacts` (阶段 2.4 ✅) | ContactsPage | im |
-| `/profile` (阶段 2.5 ✅) | ProfilePage | im |
-| `/universe` (阶段 3) | UniverseListPage | universe |
-| `/universe/:id` (阶段 3) | UniverseDetailPage | universe |
-| `/universe/:id/table/:name` (阶段 3) | RowListPage | row |
-| `/universe/:id/table/:name/edit` (阶段 3) | RowEditPage | row |
+| `unAuthRouteGuard` | `AuthBloc.state.status` | 已登录 → 跳 `/home`, 未登录 → 允许 |
+| `authRouteGuard` | `AuthBloc.state.status` | 未登录 → 跳 `/login`, 已登录 → 允许 |
+
+**跳转机制**: 通过 `GoRouter.refreshListenable` (绑定 `AuthBloc.stream`) 自动重跑守卫, 业务层**零** `router.go()` 调用。
+详见 `docs/ARCHITECTURE.md § 6.5`。
 
 ---
 

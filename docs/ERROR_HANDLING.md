@@ -157,6 +157,40 @@ class ErrorHandler {
 }
 ```
 
+### 4.0 Snackbar 3 级 fallback (避免静默失败)
+
+**之前 bug**: `_showSnack` 用 `ScaffoldMessenger.maybeOf(context)`, local 找不到时**静默 `return`**, 用户看不到错误, 也无任何 log 提示。
+
+**修法 (3 级 fallback)**:
+
+```dart
+// lib/_core/error/error_handler.dart
+static void _showSnack(BuildContext context, String message) {
+  SchedulerBinding.instance.addPostFrameCallback((_) {
+    // 1. 本地 context 的 messenger (正常路径)
+    // 2. rootNavigatorKey 的 messenger (fallback)
+    // 3. Log.e 兜底 (最起码 logcat 看得到)
+    final messenger = ScaffoldMessenger.maybeOf(context) ??
+        _rootMessenger();
+    if (messenger == null) {
+      Log.e('ErrorHandler: cannot show SnackBar, no ScaffoldMessenger: $message');
+      return;
+    }
+    messenger.showSnackBar(
+      SnackBar(content: Text(message), duration: AppDurations.snack),
+    );
+  });
+}
+
+static ScaffoldMessengerState? _rootMessenger() {
+  final ctx = rootNavigatorKey.currentContext;
+  if (ctx == null) return null;
+  return ScaffoldMessenger.maybeOf(ctx);
+}
+```
+
+**触发场景**: 嵌套 Navigator + ScaffoldMessenger 作用域不一致时 (如 GoRouter 跨 Navigator 跳页), local context 找不到 ScaffoldMessenger, fallback 到 root 一定能找到。
+
 ### 4.1 哪些算 auth 错误 (isAuthError)
 
 ```dart
