@@ -4,9 +4,12 @@
 
 | 域名 | 用途 |
 |------|------|
-| https://admin.pxshe.com | 后台管理 UI |
-| https://chat.pxshe.com | chat-api (10008) |
-| https://api.pxshe.com | openim-api (10002) |
+| https://admin.pxshe.com | 后台管理 UI(admin-api:10009) |
+| https://chat.pxshe.com | chat-api (10008,Flutter 普通用户) |
+| https://api.pxshe.com | openim-api (10002,被 SDK 调) |
+| **wss://ws.pxshe.com** | **openim-msggateway (10001,Flutter SDK 长连接)** |
+
+> 完整服务清单见 [SERVICE_INVENTORY.md](SERVICE_INVENTORY.md)。
 
 默认账号 `chatAdmin`,密码 `chatAdmin`。
 

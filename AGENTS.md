@@ -53,7 +53,7 @@
 |---|---|
 | 名称 | pxshe_app |
 | 类型 | Flutter Android/iOS App |
-| 后端 | chat.pxshe.com (chat-api) + api.pxshe.com (openim-server) |
+| 后端 | 4 域架构: chat.pxshe.com (chat-api) + api.pxshe.com (openim-api) + ws.pxshe.com (openim-msggateway) + admin.pxshe.com |
 | 仓库 | `F:\wx\pxshe_app` |
 | 启动 | `flutter run --flavor=development` |
 | 测试 | `very_good test --coverage --min-coverage 100` |
@@ -210,13 +210,26 @@ Bootstrap 中任何异常必须 catch 并 log warning, 禁止向上抛出。
 - 后端只负责 page recipe (`/api/v1/page/{type}/{slug}/`) 和 module data
 - 路由跳转走 `context.go('/path')` 或 `context.push('/path')`
 
-### 第 15 条:三域对接 (硬约束)
+### 第 15 条:4 域对接 (硬约束,后端 SSOT: [`docs/app/SERVICE_INVENTORY.md`](./docs/app/SERVICE_INVENTORY.md))
 
-**Flutter 客户端只调 `chat.pxshe.com`** (chat-api)。**绝不**:
-- ❌ 直接 HTTP 调 `api.pxshe.com` (openim-server) — 必须用 `flutter_openim_sdk` SDK
+**Flutter 业务代码只调 `chat.pxshe.com`** (chat-api)。**绝不**:
+- ❌ 直接 HTTP 调 `api.pxshe.com` (openim-api:10002) — 必须用 `flutter_openim_sdk` SDK
+- ❌ 直接 WSS 调 `ws.pxshe.com` (openim-msggateway:10001) — SDK 内部用
 - ❌ 调 `admin.pxshe.com` (admin-api) — 给超管用, Flutter 不用
 
-详见 [docs/backend-integration.md](./docs/backend-integration.md) 和 [docs/im-integration.md](./docs/im-integration.md)。
+**4 域架构**:
+
+| 域 | 客户端谁用 | 后端进程 | 后端端口 | 协议 |
+|---|---|---|---|---|
+| `chat.pxshe.com` | **Flutter 业务** ✅ | chat-api | 10008 | HTTPS |
+| `api.pxshe.com` | **OpenIM SDK 内部** | openim-api | 10002 | HTTPS |
+| `ws.pxshe.com` | **OpenIM SDK 内部** | openim-msggateway | 10001 | WSS |
+| `admin.pxshe.com` | ❌ 超管用 | admin-api | 10009 | HTTPS |
+
+**关键**: `api.pxshe.com` 和 `ws.pxshe.com` 是**独立**域名,后端 nginx 反代到**不同**后端进程 (openim-api:10002 vs openim-msggateway:10001)。
+WS 走 `wss://api.pxshe.com` 会 404 (反代没配 WSS),必须 `wss://ws.pxshe.com`。
+
+详见 [docs/IM_INTEGRATION.md §9](./docs/IM_INTEGRATION.md) 和 [docs/app/SERVICE_INVENTORY.md](./docs/app/SERVICE_INVENTORY.md)。
 
 ### 第 16 条:Token 体系 (硬约束)
 
@@ -607,6 +620,30 @@ _core / _shared -> 0 依赖 modules / app
 3. **AGENTS.md vs ROADMAP.md 阶段号打架** (`EasyLocalization 阶段 4` vs `i18n 阶段 8+`) — 两份 SSOT 必对齐, 否则工程债永远藏
 4. **业务代码**调用了**未配齐**的 API = 架构债 = 违反 § 51
 
+### 第 54.1 条:l10n 迁移 intl gen-l10n (commit 6cfe911)
+
+### 第 55 条:改动后端架构前必读后端 SSOT (硬约束)
+
+**任何**涉及后端进程 / 端口 / 域名 / 协议 的改动,**第一步**是读 [`docs/app/SERVICE_INVENTORY.md`](./docs/app/SERVICE_INVENTORY.md) (后端 SSOT 权威)。
+
+| 误踩坑 (历史 bug) | 教训 |
+|---|---|
+| 阶段 2.13 IM 地址配错 (`api.pxshe.com:10002` 直连) | 必读后端 SSOT,反代模式下 443 → 10002 走反代 |
+| 阶段 2.16 WS 域名配错 (`wss://api.pxshe.com`) | 必读后端 SSOT,WS 走独立 `ws.pxshe.com` → 10001 (openim-msggateway),4 域架构 |
+
+**4 域架构** (后端 SSOT 唯一权威):
+| 域 | 后端进程 | 后端端口 | 客户端谁用 | 协议 |
+|---|---|---|---|---|
+| `chat.pxshe.com` | chat-api | 10008 | **Flutter 业务** | HTTPS |
+| `api.pxshe.com` | openim-api | 10002 | OpenIM SDK 内部 | HTTPS |
+| `ws.pxshe.com` | openim-msggateway | 10001 | OpenIM SDK 内部 | WSS |
+| `admin.pxshe.com` | admin-api | 10009 | ❌ 超管用 | HTTPS |
+
+**禁止**:
+- ❌ `Test-Path` 文档存在 ≠ 文档已最新 (过时引用是 SSOT 漏洞)
+- ❌ 看 chat 域模式就类推其他域 (4 域各自独立,WS/HTTP 走不同进程)
+- ❌ 业务代码直接 HTTP/WS 调 `api.pxshe.com` / `ws.pxshe.com` (AGENTS §15)
+
 ---
 
-*最后更新: 2026-07-06 — l10n 迁移 intl gen-l10n*
+*最后更新: 2026-07-06 — 4 域架构对齐 (commit 2.16) + l10n 迁移 intl gen-l10n*

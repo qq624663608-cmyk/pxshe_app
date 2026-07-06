@@ -171,8 +171,8 @@ enum LoginStatus { logout, logging, logged }
 ```dart
 await OpenIM.iMManager.initSDK(
   platformID: 2,                          // Android
-  apiAddr: 'https://api.pxshe.com',      // 反代: 443 → openim-server:10002
-  wsAddr: 'wss://api.pxshe.com',         // 同上
+  apiAddr: 'https://api.pxshe.com',      // 4 域: HTTPS → openim-api:10002
+  wsAddr: 'wss://ws.pxshe.com',          // 4 域: WSS → openim-msggateway:10001
   dataDir: appDocs.path,
   listener: OnConnectListener(...),
 );

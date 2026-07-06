@@ -211,11 +211,14 @@ F:\wx\pxshe_app\
 
 ### 三域架构 (硬约束)
 
-| 域 | 客户端地址 | 后端端口 (反代后) | 用途 | Flutter 端 |
-|---|---|---|---|---|
-| `api.pxshe.com` | `https://api.pxshe.com` | 10002 | openim-server | SDK 内部 (禁直连) |
-| `chat.pxshe.com` | `https://chat.pxshe.com` | 10008 | chat-api | ✅ HTTP 业务调用 |
-| `admin.pxshe.com` | `https://admin.pxshe.com` | 10009 | admin-api | ❌ 不调用 |
+| 域 | 客户端地址 | 后端进程 | 后端端口 | 用途 | Flutter 端 |
+|---|---|---|---|---|---|
+| `chat.pxshe.com` | `https://chat.pxshe.com` | chat-api | 10008 | 业务 REST API | ✅ HTTP 业务调用 |
+| `api.pxshe.com` | `https://api.pxshe.com` | openim-api | 10002 | IM HTTP API | SDK 内部 (AGENTS §15 禁直连) |
+| **`ws.pxshe.com`** | **`wss://ws.pxshe.com`** | **openim-msggateway** | **10001** | **IM WSS 长连接** | **SDK 内部** |
+| `admin.pxshe.com` | `https://admin.pxshe.com` | admin-api | 10009 | 后台 | ❌ 不调用 |
+
+权威: [docs/app/SERVICE_INVENTORY.md](./app/SERVICE_INVENTORY.md)
 
 ### Token 体系
 

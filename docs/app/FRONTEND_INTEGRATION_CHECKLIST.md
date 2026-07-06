@@ -11,23 +11,116 @@
 **Flutter 客户端调的是 `chat.pxshe.com`,不是 `admin.pxshe.com`。**
 
 ```
-https://api.pxshe.com      → openim-server  (反代: 443 → 10002)  IM 核心 (被 SDK 调用,禁直连)
-https://chat.pxshe.com     → chat-api       (反代: 443 → 10008)  ✅ Flutter 客户端走这个
-https://admin.pxshe.com    → admin-api      (反代: 443 → 10009)  超管用,Flutter 不应该用
+https://api.pxshe.com      → openim-server  :10002  IM 核心 (被 SDK 调用,禁直连)
+https://chat.pxshe.com     → chat-api       :10008  ✅ Flutter 客户端走这个
+https://admin.pxshe.com    → admin-api      :10009  超管用,Flutter 不应该用
 ```
-
-**重要**: 客户端**不带端口**,全走 443 反代。直接 `:10002` 写 SDK 不会走反代,会被 GFW 拦 (海外主机常见)。
 
 | Flutter 客户端业务 | 走哪个域 | 方式 |
 |--------------------|---------|------|
 | 用户登录/注册 | `chat.pxshe.com` | HTTP 调 `/account/login` 等 |
-| IM 消息收发 | SDK 自动 | `openim-sdk-flutter` 内部连 openim-api |
+| IM 消息收发 | `ws.pxshe.com` + `api.pxshe.com` | `openim-sdk-flutter` SDK 自动 |
 | **宇宙业务 CRUD** | `chat.pxshe.com` | HTTP 调 `/business/universe/*` |
-| 直接 HTTP 调 openim-api | ❌ 禁止直连 | (反代 443) |
+| 直接 HTTP 调 openim-api | ❌ 禁止直连 | 10002 |
 
 ⚠️ **历史说明**: 早期版本误把所有 URL 写成 `admin.pxshe.com`,已修正。**所有 Flutter 端调用必须改成 `https://chat.pxshe.com/business/*`**。
 
 📘 **完整 Flutter 端 API 列表**见 `chat/docs/UNIVERSE_API.md` 的 **F 章**(Flutter 用户专属 RPC),里面有 `/business/universe/list`、`list_mine`、`find`、`add`、`update`、`del` 和所有 `table/row` 接口的字段说明 + 权限规则。
+
+---
+
+## 0a. Flutter IM SDK 接入（必读）
+
+> Flutter 收发消息**不走 chat-api**，走 OpenIM 原生 SDK，**WSS 长连接**到 `openim-msggateway`。
+
+### 0a.1 4 个后端服务 + Flutter SDK 关系
+
+```
+┌─────────────┐                                ┌──────────────────┐
+│             │  WSS 长连接 (在线时)           │ openim-msggateway│
+│  Flutter    │ ─────────────────────────────> │   :10001         │
+│  SDK        │ <───────────────────────────── │  (ws.pxshe.com)  │
+│             │                                └──────────────────┘
+│ openim-     │
+│  sdk-flutter│  HTTPS REST (登录/拉历史)        ┌──────────────────┐
+│             │ ─────────────────────────────> │ openim-api       │
+│             │ <───────────────────────────── │   :10002         │
+│             │                                │  (api.pxshe.com) │
+└─────────────┘                                └──────────────────┘
+       │
+       │ 业务接口（注册/登录/宇宙/通知配置）
+       ▼
+┌─────────────┐                                ┌──────────────────┐
+│  Flutter    │  HTTPS REST                    │ chat-api         │
+│  Dio/普通   │ ─────────────────────────────> │   :10008         │
+│  HTTP       │ <───────────────────────────── │  (chat.pxshe.com)│
+└─────────────┘                                └──────────────────┘
+```
+
+### 0a.2 关键 URL
+
+| 类型 | 域名 | 协议 | 用途 |
+|------|------|------|------|
+| IM 长连接 | `wss://ws.pxshe.com` | WebSocket | SDK 自动维护 |
+| IM REST | `https://api.pxshe.com` | HTTPS | SDK 内部 HTTP 调用 |
+| 业务 REST | `https://chat.pxshe.com` | HTTPS | Flutter 业务代码 |
+
+### 0a.3 openim-sdk-flutter 接入步骤
+
+```yaml
+# pubspec.yaml
+dependencies:
+  openim_sdk_flutter: ^3.0.0
+```
+
+```dart
+import 'package:openim_sdk_flutter/openim_sdk_flutter.dart';
+
+class IMSDK {
+  static Future<void> init(String userID, String token) async {
+    // 1. SDK 初始化（只需调一次）
+    final config = SDKConfig(
+      apiAddr: 'https://api.pxshe.com',         // IM REST
+      wsAddr:  'wss://ws.pxshe.com',            // IM WebSocket
+      dataDir: '${(await getApplicationSupportDirectory()).path}/im',
+    );
+    await OpenIMClient.init(config: config);
+
+    // 2. 登录（用 chat 业务登录拿到的 imToken，不是 chatToken）
+    await OpenIMClient.login(
+      userID: userID,
+      token: token,   // ← 这个 token 是 /account/login 返回的 imToken
+    );
+  }
+}
+```
+
+### 0a.4 chat.pxshe.com 登录后必带字段
+
+登录 `POST https://chat.pxshe.com/account/login` 返回：
+
+```json
+{
+  "errCode": 0,
+  "data": {
+    "chatToken": "xxx",     ← Flutter 普通业务用这个（如 /business/*）
+    "imToken":   "yyy",     ← 给 SDK 用（开 WS 长连接）
+    "userID":    "uid"
+  }
+}
+```
+
+⚠️ **两个 token 用途完全不同**，别混：
+- `chatToken` → 业务 HTTP（Bear token/header）
+- `imToken` → SDK 内部（`OpenIMClient.login` 的入参）
+
+### 0a.5 离线推送
+
+SDK 检测到 WS 断开时,服务端会通过 `openim-push` 调 APNS/小米/华为/FCM 发推送。Flutter 端**无需配置**，前提是 admin 后台填好了第三方推送凭证（见 [BACKEND_DESIGN_SPEC.md](BACKEND_DESIGN_SPEC.md) 第 9 章）。
+
+### 0a.6 看不到更多服务？看这里
+
+完整后端 15 个二进制 + 端口 + 调用关系见 [SERVICE_INVENTORY.md](SERVICE_INVENTORY.md)。
 
 ---
 
@@ -92,7 +185,7 @@ https://admin.pxshe.com    → admin-api      (反代: 443 → 10009)  超管用
 ### 2.3 响应处理
 
 ```
-成功(errCode=0):
+成功(errorCode=0):
   data.chatToken = "eyJhbGciOiJIUzI1NiIs..."  ← 必须存到本地(普通用户 token, UserType=1)
   data.userID = "3370159211"                  ← 当前登录用户的 ID
   data.imToken = "eyJhbGciOiJIUzI1NiIs..."    ← IM SDK 用(也存本地)
@@ -155,7 +248,7 @@ class AuthService {
       'password': password,        // 明文
       'platform': 2,               // 2=Android,1=iOS 等
     });
-    if (res.data['errCode'] != 0) {
+    if (res.data['errorCode'] != 0) {
       throw Exception(res.data['errMsg']);
     }
     _chatToken = res.data['data']['chatToken'];
@@ -344,7 +437,7 @@ class _UniverseListPageState extends State<UniverseListPage> {
   data.id = 15    ← 新世界的 ID(关键!后续所有操作都靠这个 ID)
   data.createdAt = "2026-07-01T..."
 
-失败(errCode=400):
+失败(errorCode=400):
   通常是 name 或 creatorId 没填,弹 toast 提示
 ```
 
@@ -408,7 +501,7 @@ class _UniverseCreatePageState extends State<UniverseCreatePage> {
           'visibility': 'public',
         },
       );
-      if (res.data['errCode'] != 0) throw Exception(res.data['errMsg']);
+      if (res.data['errorCode'] != 0) throw Exception(res.data['errMsg']);
       final newId = res.data['data']['id'];
       Navigator.pushReplacement(context, MaterialPageRoute(
         builder: (_) => UniverseDetailPage(universeId: newId),
@@ -461,7 +554,7 @@ class _UniverseCreatePageState extends State<UniverseCreatePage> {
 
 ```
 find 成功:  data.id, data.name, data.summary, data.coverUrl, data.creatorId, data.createdAt
-update 成功: data 为空 {} 或 errCode=0 即可
+update 成功: data 为空 {} 或 errorCode=0 即可
 ```
 
 ### 5.4 前端要做的事
@@ -532,8 +625,8 @@ Future<void> _save() async {
 ### 6.2 响应处理
 
 ```
-成功: errCode=0, data.id = 15
-失败(errCode=404): 世界不存在
+成功: errorCode=0, data.id = 15
+失败(errorCode=404): 世界不存在
 ```
 
 ### 6.3 前端要做的事
@@ -664,7 +757,7 @@ Widget _buildTableSelector(List<String> tables, String active, ValueChanged<Stri
 ### 8.3 响应处理
 
 ```
-成功: errCode=0, data.name = "weapon"
+成功: errorCode=0, data.name = "weapon"
 失败(400): 表名非法字符 / 超长度
 ```
 
@@ -970,7 +1063,7 @@ DataColumn(_build('操作', width: 100)),
 
 ```
 add 成功: data.id = 123   ← 新行 ID
-update 成功: errCode=0, data 为空
+update 成功: errorCode=0, data 为空
 ```
 
 ### 11.5 前端要做的事
@@ -1094,7 +1187,7 @@ Future<void> _addOrUpdateRow({Map? existing}) async {
 ### 12.2 响应处理
 
 ```
-成功: errCode=0, data.id = 1
+成功: errorCode=0, data.id = 1
 失败(404): 该行不存在
 ```
 

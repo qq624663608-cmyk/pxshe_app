@@ -336,17 +336,19 @@ await OpenIM.iMManager.login(
 
 ---
 
-## 9. 网络协议
+## 9. 网络协议 (4 域架构,后端 SSOT: `docs/app/SERVICE_INVENTORY.md`)
 
-| 连接 | 协议 | 客户端地址 (Flutter 写) | 后端 (反代后) |
-|---|---|---|---|
-| WebSocket | `wss://` | `wss://api.pxshe.com` (默认 443) | nginx → `openim-server:10002` |
-| HTTP API | `https://` | `https://api.pxshe.com` (默认 443) | nginx → `openim-server:10002` |
+| 域名 | 协议 | 客户端谁用 | 后端进程 | 后端端口 | nginx 反代 |
+|---|---|---|---|---|---|
+| `chat.pxshe.com` | HTTPS | **Flutter 业务** ✅ | chat-api | 10008 | `chat.pxshe.com:443 → 127.0.0.1:10008` |
+| `api.pxshe.com` | HTTPS | **OpenIM SDK 内部** (AGENTS §15 禁直连) | openim-api | 10002 | `api.pxshe.com:443 → 127.0.0.1:10002` |
+| **`ws.pxshe.com`** | **WSS** | **OpenIM SDK 内部** | **openim-msggateway** | **10001** | **`ws.pxshe.com:443 → 192.168.1.56:10001` (WSS upgrade)** |
+| `admin.pxshe.com` | HTTPS | ❌ 超管用 | admin-api | 10009 | `admin.pxshe.com:443 → 127.0.0.1:10009` |
 
-**重要**: **客户端不带端口** (跟 `chat.pxshe.com` 同样模式),反代在 443 上转发到后端 10002。
-直接写 `:10002` 不会走反代,会被 GFW 拦 (海外主机常见)。
+**Flutter 业务代码**只调 `chat.pxshe.com`。`api.pxshe.com` / `ws.pxshe.com` 是 OpenIM SDK 内部用,
+通过 `im_auth_repository_impl.dart` 的 `_apiAddr()` / `_wsAddr()` 传给 SDK initSDK(),业务代码**不**直接调。
 
-Flutter 端**不直接连**, 通过 SDK 间接通信。
+**客户端不带端口** (跟 chat 域同样模式),反代在 443 上转发。直接 `:10002` 写不会走反代。
 
 ---
 

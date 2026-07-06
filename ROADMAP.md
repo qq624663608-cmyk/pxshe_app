@@ -150,6 +150,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | 2.13 | 端到端真机验证 (登录→聊天页 / 消息收发 / 踢下线) | 1+18 | ❌ **未做** |
 | 2.14 | **l10n 基础设施迁移** (删 `easy_localization` 改用 `intl` gen-l10n, 修 f219a19) | 13 | ✅ |
 | 2.15 | **IM 反代地址修复** (`_apiAddr` / `_wsAddr` 默认值去 `:10002` 端口,跟 `chat` 域同样走 443 反代) | 1+13 | ✅ |
+| 2.16 | **4 域架构对齐** (`_wsAddr` 改 `wss://ws.pxshe.com` 走独立 openim-msggateway:10001,4 域架构 (api/ws/chat/admin) 文档全对齐 `SERVICE_INVENTORY.md`) | 1+13 | ✅ |
 
 ### 阶段 2 验收
 - [x] 242/242 测试通过

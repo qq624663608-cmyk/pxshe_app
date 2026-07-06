@@ -5,15 +5,16 @@
 
 ---
 
-## 三域架构 (硬约束)
+## 4 域架构 (硬约束,后端 SSOT: `docs/app/SERVICE_INVENTORY.md`)
 
 | 域 | 客户端地址 (无端口,反代) | 用途 | Flutter 端调用 |
 |---|---|---|---|
-| `api.pxshe.com` | `https://api.pxshe.com` | openim-server (反代到 10002) | SDK 内部 (Flutter 不直连) |
 | `chat.pxshe.com` | `https://chat.pxshe.com` | chat-api (反代到 10008) | ✅ **Flutter 唯一业务域** |
+| `api.pxshe.com` | `https://api.pxshe.com` | openim-api (反代到 10002) | OpenIM SDK 内部 (AGENTS §15 禁直连) |
+| `ws.pxshe.com` | `wss://ws.pxshe.com` | openim-msggateway (反代到 10001 WSS) | OpenIM SDK 内部 |
 | `admin.pxshe.com` | `https://admin.pxshe.com` | admin-api (反代到 10009) | ❌ **不调用** (超管用) |
 
-**重要**: 客户端**不带端口** (跟 `chat.pxshe.com` 同样模式),反代在 443 上转发到后端 10002/10008/10009。直接写 `:10002` 不会走反代。
+**重要**: 客户端**不带端口** (跟 `chat.pxshe.com` 同样模式),反代在 443 上转发。直接写 `:10002` / `:10001` 不会走反代。
 
 详见 [backend-integration.md](./backend-integration.md) (旧版) 或 [IM_INTEGRATION.md](./IM_INTEGRATION.md)。
 

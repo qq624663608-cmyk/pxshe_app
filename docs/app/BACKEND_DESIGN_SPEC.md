@@ -159,6 +159,62 @@ postgres pxshe_business
 
 ---
 
+## 1.5 OpenIM Server 端 13 个二进制
+
+> 本节说明 OpenIM server 端有哪些服务、Flutter/前端只需关心其中 2 个。
+
+### 1.5.1 二进制列表
+
+| # | 二进制 | 端口 | 类型 | 职责 | Flutter/前端用吗 |
+|---|--------|------|------|------|----------------|
+| 1 | `openim-api` | **10002** | HTTPS | IM 核心 REST API | ⚠️ SDK 内部调，不要直连 |
+| 2 | `openim-msggateway` | **10001** | **WSS** | IM WebSocket 长连接 | ✅ SDK 自动连 |
+| 3 | `openim-msgtransfer` | 12020-12035 | RPC | 消息投递（16 实例负载均衡） | ❌ 后端内部 |
+| 4 | `openim-push` | 10170-10185 | RPC | 离线推送（APNS/小米/华为） | ❌ 后端内部 |
+| 5 | `openim-rpc-auth` | 10200 | RPC | token 鉴权 | ❌ 后端内部 |
+| 6 | `openim-rpc-user` | 10320 | RPC | 用户账号 | ❌ 后端内部 |
+| 7 | `openim-rpc-friend` | 10240 | RPC | 好友关系 | ❌ 后端内部 |
+| 8 | `openim-rpc-group` | 10260 | RPC | 群组管理 | ❌ 后端内部 |
+| 9 | `openim-rpc-conversation` | 10220 | RPC | 会话列表 | ❌ 后端内部 |
+| 10 | `openim-rpc-msg` | 10110 | RPC | 消息存储 | ❌ 后端内部 |
+| 11 | `openim-rpc-third` | 10300 | RPC | 第三方（SMS/邮件） | ❌ 后端内部 |
+| 12 | `openim-crontask` | （无） | Cron | 定时任务（清理过期） | ❌ 后端内部 |
+
+Flutter 实际只需要：
+- **业务接口** → `chat.pxshe.com` (chat-api:10008)
+- **IM 接口** → `wss://ws.pxshe.com` + `https://api.pxshe.com`（openim-sdk-flutter SDK 内部搞定）
+
+### 1.5.2 完整 15 个二进制清单
+
+> 全部 15 个二进制 + 端口 + 调用关系图见 [SERVICE_INVENTORY.md](SERVICE_INVENTORY.md)。
+
+### 1.5.3 Flutter ↔ 后端的真实通信流
+
+```
+Flutter 普通用户
+   │
+   │ (1) HTTP POST https://chat.pxshe.com/account/login
+   │    [返回 chatToken + imToken + userID]
+   ▼
+chat-api:10008 ──gRPC──> chat-rpc:30300 ──HTTP──> openim-api:10002
+                                                         │
+                                                         ├─> openim-rpc-user    (建账号)
+                                                         └─> openim-rpc-auth    (发 token)
+
+Flutter IM 收发
+   │
+   │ (1) OpenIMClient.login(userID, imToken)  // SDK 内部
+   │
+   │ (2) [SDK 自动] WSS 长连 → wss://ws.pxshe.com (openim-msggateway:10001)
+   │       [自动收发消息、心跳、重连]
+   ▼
+openim-msggateway ──gRPC──> openim-rpc-msg       (收消息)
+openim-msggateway ──gRPC──> openim-msgtransfer   (异步投递)
+openim-msggateway ──gRPC──> openim-push          (离线推送)
+```
+
+---
+
 ## 2. Universe 业务模型
 
 ### 2.1 表结构详解
@@ -1252,7 +1308,7 @@ Flutter 登录
                                                                                             ↓
                                                                                             删 1 行
                                                                                             ↓
-                                                                    返 { errCode: 0 }
+                                                                    返 { errorCode: 0 }
                        前端刷新列表,空状态
 ```
 
@@ -1292,7 +1348,7 @@ Flutter 登录
                                                                                             ↓
                                                                                             主表 world 15 记录被删
                                                                                             ↓
-                                                返 { errCode: 0 }
+                                                返 { errorCode: 0 }
                        前端弹"已删除" + 跳列表页
 ```
 
@@ -1319,7 +1375,7 @@ Flutter 登录
 **结果**:两个都执行 DeleteUniverse。A 先执行完(删了所有子表+主表),B 再执行时:
 - ListDynamicTables(15) 返回空
 - DELETE FROM universe WHERE id=15 影响 0 行(因为 A 已删)
-- 返 errCode=0(不算错误,只是删了个空操作)
+- 返 errorCode=0(不算错误,只是删了个空操作)
 
 ⚠️ **第二次返回"成功"但实际啥都没干**。前端应该检查响应体,确认世界真的删了。
 

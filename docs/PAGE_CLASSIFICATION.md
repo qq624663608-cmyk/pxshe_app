@@ -71,7 +71,11 @@
 | `/contacts` (阶段 2.4 ✅) | `authRouteGuard` | ContactsPage | im |
 | `/profile` (阶段 2.5 ✅) | `authRouteGuard` | ProfilePage | im |
 
-**IM 后端地址** (阶段 2.15 修): `https://api.pxshe.com` / `wss://api.pxshe.com` (反代 443 → 10002,客户端**不带端口**),详见 [docs/IM_INTEGRATION.md §9](./IM_INTEGRATION.md)。
+**IM 后端地址** (阶段 2.15 + 2.16 修): 4 域架构
+- 业务代码: `https://chat.pxshe.com` (chat-api:10008) — **唯一业务域**
+- SDK 内部 HTTP: `https://api.pxshe.com` (openim-api:10002)
+- SDK 内部 WSS: `wss://ws.pxshe.com` (openim-msggateway:10001, **独立 msg-gateway 域**)
+- 客户端**不带端口** (反代 443),详见 [docs/IM_INTEGRATION.md §9](./IM_INTEGRATION.md) + 后端 SSOT [docs/app/SERVICE_INVENTORY.md](./app/SERVICE_INVENTORY.md)。
 | `/universe` (阶段 3) | `authRouteGuard` | UniverseListPage | universe |
 | `/universe/:id` (阶段 3) | `authRouteGuard` | UniverseDetailPage | universe |
 | `/universe/:id/table/:name` (阶段 3) | `authRouteGuard` | RowListPage | row |

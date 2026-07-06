@@ -30,6 +30,11 @@
 | 生产 | `https://chat.pxshe.com` |
 | 测试直连 | `http://127.0.0.1:10008` |
 
+> Flutter 客户端在登录完成后会用 IM 长连接：
+> - `wss://ws.pxshe.com` （openim-msggateway:10001,SDK 自动连）
+> - `https://api.pxshe.com` （openim-api:10002,SDK 内部调）
+> 完整后端服务清单见 [SERVICE_INVENTORY.md](SERVICE_INVENTORY.md)。
+
 ---
 
 ## 2. 拉取注册策略
@@ -50,7 +55,7 @@ operationID: startup-cfg-{ts}
 
 ```json
 {
-  "errCode": 0,
+  "errorCode": 0,
   "data": {
     "allowRegister": true,
     "availableMethods": ["phone", "email", "username"],
@@ -186,7 +191,7 @@ operationID: register-{ts}
 
 ```json
 {
-  "errCode": 0,
+  "errorCode": 0,
   "data": {
     "userID": "3370159211",
     "chatToken": "eyJhbGc...",
@@ -350,7 +355,7 @@ class _RegisterPageState extends State<RegisterPage> {
       }),
     );
 
-    if (res.data['errCode'] == 0) {
+    if (res.data['errorCode'] == 0) {
       // 注册成功 → 直接登录
       final token = res.data['data']['chatToken'];
       await saveToken(token);
