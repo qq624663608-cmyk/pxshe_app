@@ -26,18 +26,32 @@ class HttpClient {
       }),
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          Log.d('request: ${options.uri}');
+          Log.d('request: ${options.method} ${options.uri}');
           return handler.next(options);
         },
         onResponse: (response, handler) {
           final status = response.statusCode ?? 0;
+          final body = response.data;
+          final preview = body is Map
+              ? ' errCode=${body['errCode']} errMsg=${body['errMsg']}'
+              : '';
+          Log.d('response: $status ${response.requestOptions.uri}$preview');
           if (status >= 200 && status < 300) {
             return handler.next(response);
           }
           throw ServerException();
         },
         onError: (DioException e, handler) {
-          Log.e('HttpClient.onError', e);
+          final body = e.response?.data;
+          final bodyPreview = body is Map
+              ? ' errCode=${body['errCode']} errMsg=${body['errMsg']}'
+              : '';
+          Log.e(
+            'http error: ${e.type} '
+            '${e.requestOptions.uri} '
+            'status=${e.response?.statusCode}$bodyPreview '
+            'msg=${e.message}',
+          );
           return handler.next(e);
         },
       ),
