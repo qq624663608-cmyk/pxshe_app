@@ -242,6 +242,31 @@ router.bindAuthBloc();  // 一次性绑定
 - 登出 → `AuthBloc` emit `unauthenticated` → `/home` 的 `authRouteGuard` 检测到未登录 → 跳 `/login`
 - 业务代码**零** `context.go()` 调用, 跳转全自动
 
+### 6.6 启动时序 (硬约束)
+
+`initAfterRunApp(context)` **必须**在 `App.build` 里调, 否则 navTabs 列表是空, 路由守卫死循环。
+
+```dart
+// lib/app/view/app.dart
+@override
+Widget build(BuildContext context) {
+  final router = di<AppRouter>();
+  router.bindAuthBloc();
+  AppModules.initAfterRunApp(context);  // ← 缺这行 = 404
+
+  return MultiBlocProvider(...);
+}
+```
+
+| 步骤 | 调什么 | 在哪调 | 原因 |
+|---|---|---|---|
+| 1 | `Bootstrap.init()` | `main.dart` | 无 `BuildContext` 的初始化 (DI / HTTP / DB) |
+| 2 | `App.build` + `AppModules.initAfterRunApp(context)` | `App.build` | 需要 `BuildContext` (注入 navTabs) |
+| 3 | `router.bindAuthBloc()` | `App.build` | 绑 AuthBloc.stream → refreshListenable |
+
+**Bug 教训 (1b9871a)**: 漏第 2 步 → `firstNavRoute()` 拿到空 list → fallback `"//"` →
+`initialRedirect` state=authenticated → return `firstNavRoute() = "/"` → 死循环 → 404。
+
 ---
 
 ## 7. 模块依赖矩阵

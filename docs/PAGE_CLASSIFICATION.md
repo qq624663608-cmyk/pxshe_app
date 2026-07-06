@@ -79,8 +79,23 @@
 
 | 守卫 | 检查 | 行为 |
 |---|---|---|
-| `unAuthRouteGuard` | `AuthBloc.state.status` | 已登录 → 跳 `/home`, 未登录 → 允许 |
+| `unAuthRouteGuard` | `AuthBloc.state.status` | 已登录 → 跳 `firstNavRoute()`, 未登录 → 允许 |
 | `authRouteGuard` | `AuthBloc.state.status` | 未登录 → 跳 `/login`, 已登录 → 允许 |
+
+**`firstNavRoute()` 依赖 navTabs 列表**:
+
+```dart
+String firstNavRoute() {
+  var navRoutes = getNavRoutes();        // di<List<...>>(instanceName: navTabsDiKey)
+  if (navRoutes.isNotEmpty) {
+    return navRoutes.first.route;        // 当前 = "/home"
+  }
+  return "/";  // fallback — Bug 1b9871a 死循环起点
+}
+```
+
+navTabs 列表由 `AppModules.initAfterRunApp(context)` 填充, 详见 `docs/ARCHITECTURE.md § 6.6`。
+**漏调** → 列表空 → 死循环 → Error404Page。
 
 **跳转机制**: 通过 `GoRouter.refreshListenable` (绑定 `AuthBloc.stream`) 自动重跑守卫, 业务层**零** `router.go()` 调用。
 详见 `docs/ARCHITECTURE.md § 6.5`。

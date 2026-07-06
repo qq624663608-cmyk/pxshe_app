@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../_core/_init_modules.dart';
 import '../../_core/app_router.dart';
 import '../../_core/di.dart';
 import '../../_core/theme.dart';
@@ -16,6 +17,10 @@ class App extends StatelessWidget {
     // Bind AuthBloc.stream → router.refreshListenable so that every
     // auth-state change re-evaluates route guards (industry standard).
     router.bindAuthBloc();
+    // Populate navTabs (required by firstNavRoute used in route guards).
+    // Idempotent: clears + re-adds on every build, but build only runs
+    // when the parent rebuilds this widget — which is rare in production.
+    AppModules.initAfterRunApp(context);
 
     return MultiBlocProvider(
       providers: [

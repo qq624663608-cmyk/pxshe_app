@@ -73,9 +73,17 @@
 
 ### 第 1 条:初始化位置
 
-**所有初始化必须放在 `Bootstrap.init()` 中** (`lib/_core/_bootstrap.dart`), 严禁放在 `main.dart`。
+**所有初始化分 2 步, 缺一不可**:
 
-理由: `main.dart` 只做 `WidgetsFlutterBinding.ensureInitialized()` + 启动 `Bootstrap`, 保持冷启动同步路径短。
+1. **`Bootstrap.init()`** (`lib/_core/_bootstrap.dart`) — 无 `BuildContext` 的初始化
+   (HttpClient / Database / DI 注册 / `AppModules.initBeforeRunApp`)。`main.dart` 调。
+2. **`AppModules.initAfterRunApp(context)`** (`lib/_core/_init_modules.dart:21`)
+   — 需要 `BuildContext` 的初始化 (注入 navTabs)。`App.build` 第一次跑时调。
+
+理由: `main.dart` 只做 `WidgetsFlutterBinding.ensureInitialized()` + 启动 `Bootstrap`,
+保持冷启动同步路径短。`initAfterRunApp` **必须**在 `App.build` 里调, **否则 navTabs
+列表是空, `firstNavRoute()` fallback 到 "/", 登录成功后 GoRouter 进入死循环并跳
+Error404Page** (bug 1b9871a-1 真实踩坑)。
 
 ### 第 2 条:状态管理 (BLoC 强制)
 

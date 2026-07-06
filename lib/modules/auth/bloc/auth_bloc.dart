@@ -83,5 +83,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(status: AuthStatus.authenticated, user: User.empty));
+    // Connect IM after a successful login (mirrors cold-start bootstrap
+    // in `_appLoaded`). Failures are logged but never block auth state.
+    unawaited(bootstrapIMAfterLogin().catchError((Object e, StackTrace _) {
+      Log.w('AuthBloc: IM bootstrap failed after login: $e');
+    }));
   }
 }
