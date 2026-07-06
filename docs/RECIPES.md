@@ -234,26 +234,30 @@ class <M>RemoteDataSource {
 
 ## Recipe 4: 加新错误码 (3 步)
 
+> **当前实现 (2026-07-06)**: 错误码在 `lib/_core/error/api_exception.dart:9` 的 `enum ErrorKey`,
+> 错误消息**hardcoded 中文**在同文件 `_defaultMessageFor()` 函数里 (line 166)。
+> 后端返的 `errMsg` 优先用, 没的话 fallback 到 hardcoded 中文。
+>
+> 阶段 4 (i18n 深化) 时, `_defaultMessageFor()` 应改用 `AppLocalizations.of(context)!.<key>`。
+
 ```bash
-□ 1. lib/_core/error/error_keys.dart enum 加 1 行
-□ 2. lib/_core/i18n/error_messages.dart 加中文 + 英文 2 行
-□ 3. test/_core/error/error_keys_test.dart 加 1 case
+□ 1. lib/_core/error/api_exception.dart enum ErrorKey 加 1 行 (code, name)
+□ 2. lib/_core/error/api_exception.dart _defaultMessageFor() 加 1 case (中文 fallback)
+□ 3. test/_core/error/api_exception_test.dart 加 1 case
 ```
 
 ### 模板
 
 ```dart
-// error_keys.dart
+// api_exception.dart:9 enum ErrorKey
 enum ErrorKey {
-  myNewError('error.my_new_error', 1009),
-  // ...
+  // ... existing
+  myNewError(1009, 'MyNewError'),
 }
 
-// error_messages.dart
-static const Map<String, String> _zhCN = {
-  'error.my_new_error': '新错误',
-  // ...
-};
+// api_exception.dart:166 _defaultMessageFor() switch
+case ErrorKey.myNewError:
+  return '我的新错误';
 ```
 
 ---
