@@ -62,7 +62,7 @@
 | 架构 | Clean Architecture + Modular + BLoC 9.x |
 | 状态管理 | BLoC + get_it + GoRouter |
 | Lint | very_good_analysis 10.x + bloc_lint |
-| L10n | zh + en (EasyLocalization, 阶段 4) |
+| L10n | zh + en + ar + es (intl gen-l10n, 阶段 2.7 基础 + 阶段 3 业务边用边补) |
 | License | AGPL-3.0-or-later |
 
 **新人入职**: 先读 [`docs/KNOWLEDGE_GRAPH.md`](./docs/KNOWLEDGE_GRAPH.md) (30 分钟全貌), 再读本文件顶部 30 行 (设计初心 + 5 反模式)。
@@ -79,13 +79,13 @@
    (HttpClient / Database / DI 注册 / `AppModules.initBeforeRunApp`)。`main.dart` 调。
 2. **`AppModules.initAfterRunApp(context)`** (`lib/_core/_init_modules.dart:21`)
    — 需要 `BuildContext` 的初始化 (注入 navTabs)。**在 `MaterialApp.router.builder`
-   里调** (见 `lib/app/view/app.dart:33`),**不**在 `App.build` 顶层调。
+   里调** (见 `lib/app/view/app.dart`),**不**在 `App.build` 顶层调。
 
 理由: `main.dart` 只做 `WidgetsFlutterBinding.ensureInitialized()` + 启动 `Bootstrap`,
 保持冷启动同步路径短。`initAfterRunApp` **必须**通过 `MaterialApp.router.builder` 调
-(那里 context 经过了 MaterialApp + EasyLocalization + Router 包装), 否则 `context.tr()`
-抛 `LocalizationNotFoundException`。漏调 → navTabs 列表空 → `firstNavRoute()` fallback
-到 "/" → 登录成功后 GoRouter 进入死循环并跳 Error404Page (bug 3b1fca8 真实踩坑)。
+(那里 context 经过了 MaterialApp + Localizations + Router 包装), 否则
+`AppLocalizations.of(context)` 抛 null 异常。漏调 → navTabs 列表空 → `firstNavRoute()`
+fallback 到 "/" → 登录成功后 GoRouter 进入死循环并跳 Error404Page (bug 3b1fca8 真实踩坑)。
 
 ### 第 2 条:状态管理 (BLoC 强制)
 
@@ -562,4 +562,51 @@ _core / _shared -> 0 依赖 modules / app
 
 ---
 
-*最后更新: 2026-07-01 — v2 启动*
+## 第十七章:l10n 基础设施(第 54 条) — 地基原则
+
+### 第 54 条:l10n 硬约束
+
+**单一来源 = `intl` gen-l10n (ARB)**,**禁止** `easy_localization` (违反 § 51 防堆砌)。
+
+| 资源 | 位置 | 备注 |
+|---|---|---|
+| ARB 文件 (SSOT) | `lib/l10n/arb/app_{zh,en,ar}.arb` | `app_en.arb` 是 template (`l10n.yaml` 配) |
+| 生成代码 | `lib/l10n/gen/app_localizations*.dart` | `flutter gen-l10n` 自动生成, **不要手改** |
+| 配置 | `l10n.yaml` | `arb-dir` / `output-localization-file` / `output-dir` 已配 |
+| 启用 | `pubspec.yaml` `flutter: generate: true` | ✅ 已开 |
+| Locale 状态 | `lib/_shared/blocs/locale_cubit.dart` | 持久化到 `THEME_BOX` (复用, 避免新增 box) |
+| 调用方式 | `AppLocalizations.of(context)!.xxxCamelCase` | **不是** `context.tr('xxx.yyy')` |
+| 配挂载 | `app.dart` `MaterialApp.router` 传 `localizationsDelegates` + `supportedLocales` + `locale: LocaleCubit.state` | **必须**配齐, 缺一抛 `LocalizationsNotFoundException` (bug f219a19 真实踩坑) |
+
+**新增 key 流程**:
+1. `lib/l10n/arb/app_en.arb` 加 `"xxxYyy": "English value"`
+2. `lib/l10n/arb/app_zh.arb` 加 `"xxxYyy": "中文"`
+3. (ar/es 同理, 缺翻译用英文 placeholder)
+4. `flutter gen-l10n` 重生成 `lib/l10n/gen/`
+5. 业务调 `AppLocalizations.of(context)!.xxxYyy`
+
+**禁止**:
+- ❌ 用 `easy_localization` 的 `context.tr()` / `context.locale` / `context.setLocale()` (已删, 不要回引)
+- ❌ `assets/translations/*.json` (跟 ARB 重复)
+- ❌ 在 widget 里硬编码中英文字符串 (除非是动态数据)
+- ❌ 加新 locale 却不配 ARB 文件 (gen-l10n 会失败)
+- ❌ 假设测试 widget 不需要 `MaterialApp` wrap (L10n 需要 Localizations ancestor)
+
+### 第 54.1 条:踩过的坑 (bug f219a19)
+
+**症状**: 改完代码, 真机启动后**红屏** `Localization not found for current context`。
+
+**真因**: 模板 fork 时用了 `easy_localization` 的 `context.tr()`, 但**从来没**挂 `EasyLocalization` widget,**从来没**配 `assets/translations/*.json`,**从来没**在 `MaterialApp.localizationsDelegates` 配 `AppLocalizations.delegate`。
+
+**教訓**:
+1. **调用**任何 l10n API 前, **先验证基础设施闭环** (见 § 1):
+   - widget tree 根挂 `Localizations` 提供者 (EasyLocalization widget **或** `MaterialApp.localizationsDelegates`)
+   - 翻译资源存在 (JSON **或** ARB + 生成)
+   - `pubspec.yaml` 注册 `assets:` 路径
+2. **真机手动走一遍**所有 page — 测试覆盖率 100% ≠ 端到端可跑
+3. **AGENTS.md vs ROADMAP.md 阶段号打架** (`EasyLocalization 阶段 4` vs `i18n 阶段 8+`) — 两份 SSOT 必对齐, 否则工程债永远藏
+4. **业务代码**调用了**未配齐**的 API = 架构债 = 违反 § 51
+
+---
+
+*最后更新: 2026-07-06 — l10n 迁移 intl gen-l10n*

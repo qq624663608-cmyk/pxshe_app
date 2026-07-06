@@ -1,7 +1,8 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../_core/app_router.dart';
+import '../blocs/locale_cubit.dart';
+import '../l10n/gen/app_localizations.dart';
 
 class LanguageChangeButton extends StatelessWidget {
   const LanguageChangeButton({super.key});
@@ -9,7 +10,7 @@ class LanguageChangeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: context.tr('layoutPage.changeLanguage'),
+      tooltip: AppLocalizations.of(context).layoutPageChangeLanguage,
       icon: const Icon(Icons.language),
       onPressed: () async {
         final RenderBox button = context.findRenderObject() as RenderBox;
@@ -44,14 +45,8 @@ class LanguageChangeButton extends StatelessWidget {
           ],
         );
 
-        if (selected != null) {
-          // Defer locale change after frame render to avoid context issues
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final safeContext = rootNavigatorKey.currentContext;
-            if (safeContext != null) {
-              safeContext.setLocale(selected);
-            }
-          });
+        if (selected != null && context.mounted) {
+          context.read<LocaleCubit>().setLocale(selected);
         }
       },
     );

@@ -31,7 +31,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | **0** 规则 | AGENTS/18 docs/10 ADR/tool | ✅ 100% | 7 |
 | **1** 骨架 | ApiClient/ErrorHandler/AppColors/registration/bootstrap | ✅ 100% | 1+6+8+16 |
 | **1.5** UI | LoginPage/RegisterPage/HomePage 写真实 | 🟡 75% (端到端未跑过) | 6+11 |
-| **2** IM | OpenIM 集成 (代码+测试) | 🟡 90% (端到端未跑过) | 1+6+18 |
+| **2** IM | OpenIM 集成 (代码+测试) | 🟡 95% (l10n 基础已修) | 1+6+13+18 |
 | **3** 业务 | universe/table/row | ❌ 0% | 1+6+10 |
 | **4** 质量 | 集成测试/异常路径/Code Review | ❌ 0% | 2+8+9 |
 | **5** 工程化 | CI/CD/灰度/监控/可观测性 | 🟡 30% (CI workflow 已有) | 3+4+5+12+14 |
@@ -62,7 +62,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | 10 | GDPR | 3+7 | 🟡 30% | privacy 协议 + 注销待做 |
 | 11 | a11y | 1.5+8+ | 🟡 10% | LoginPage 加 (阶段 8+ 深化) |
 | 12 | 性能预算 | 5-6 | ❌ 0% | 阶段 5 监控 + 阶段 6 调优 |
-| 13 | i18n | 8+ | ❌ 0% | `lib/_core/i18n/` (EasyLocalization 已装) |
+| 13 | i18n | 2.7+3 | 🟡 50% (基础已搭,业务模块边用边补) | `lib/l10n/arb/` (intl gen-l10n) |
 | 14 | 可观测性 | 1+5 | 🟡 40% | `lib/_core/logger/` (appLogger) |
 | 15 | 灾备 | 8+ | ❌ 0% | 阶段 8+ 评估 |
 | 16 | 协作流程 | 0+1 | 🟡 60% | `docs/CONTRIBUTING.md` + tool/ 钩子 |
@@ -148,6 +148,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | 2.11 | CI/Dependabot/auto-merge (`.github/workflows/ci.yml` + `dependabot_auto_merge.yml`) | 3 | ✅ |
 | 2.12 | 远端仓库 public + branch protection (require CI ci) | 3 | ✅ |
 | 2.13 | 端到端真机验证 (登录→聊天页 / 消息收发 / 踢下线) | 1+18 | ❌ **未做** |
+| 2.14 | **l10n 基础设施迁移** (删 `easy_localization` 改用 `intl` gen-l10n, 修 f219a19) | 13 | ✅ |
 
 ### 阶段 2 验收
 - [x] 242/242 测试通过
@@ -246,7 +247,7 @@ pxshe_app = Flutter IM 客户端 + 宇宙业务后台
 | Commit | 内容 | 覆盖维度 |
 |---|---|---|
 | 8.1 | a11y (TalkBack / VoiceOver / 对比度) | 11 |
-| 8.2 | i18n (EasyLocalization 配置 + 多语言) | 13 |
+| 8.2 | i18n (EasyLocalization 配置 + 多语言) | 13 |  (已被 2.14 提前, 仅作历史) |
 | 8.3 | 灾备 (多区域部署 + 数据备份) | 15 |
 | 8.4 | 数据分析 (漏斗/留存) | 17 |
 

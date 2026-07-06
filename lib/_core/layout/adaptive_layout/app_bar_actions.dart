@@ -1,9 +1,9 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../_shared/l10n/gen/app_localizations.dart';
 import '../../../_shared/widgets/language_change_button.dart';
 import '../../../_shared/widgets/theme_mode_button.dart';
 import '../../../modules/auth/bloc/auth_bloc.dart';
@@ -22,7 +22,7 @@ List<Widget> appBarActions(BuildContext context) {
         }
       },
       child: IconButton(
-        tooltip: context.tr('layoutPage.logout'),
+        tooltip: AppLocalizations.of(context).layoutPageLogout,
         onPressed: () {
           context.read<AuthBloc>().add(AuthLogoutRequested());
         },

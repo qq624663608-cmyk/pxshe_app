@@ -29,7 +29,6 @@
 | `hive_ce` | Apache-2.0 | ✅ |
 | `hive_ce_flutter` | Apache-2.0 | ✅ |
 | `go_router` | BSD-3-Clause | ✅ |
-| `easy_localization` | MIT | ✅ |
 | `dartz` | BSD-3-Clause | ✅ |
 | `rxdart` | Apache-2.0 | ✅ |
 | `flutter_form_builder` | MIT | ✅ |

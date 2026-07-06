@@ -1,8 +1,8 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../blocs/theme_mode_cubit.dart';
+import '../l10n/gen/app_localizations.dart';
 
 class ThemeModeButton extends StatelessWidget {
   const ThemeModeButton({
@@ -15,7 +15,7 @@ class ThemeModeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: context.tr('layoutPage.changeTheme'),
+      tooltip: AppLocalizations.of(context).layoutPageChangeTheme,
       constraints: BoxConstraints(minWidth: radius ?? 44, minHeight: radius ?? 44),
       onPressed: () {
         if (Theme.of(context).brightness == Brightness.dark) {

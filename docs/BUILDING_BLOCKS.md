@@ -99,6 +99,30 @@ TextDivider(text: '或使用以下方式')
 // 自动消费 ConnectionBloc 状态, 显示"重连中..."横幅
 ```
 
+### 3.1 跨 module 共享 Cubit (`_shared/blocs/`)
+
+```dart
+// lib/_shared/blocs/theme_mode_cubit.dart
+// ThemeMode 状态 (light/dark/system), 持久化到 THEME_BOX
+context.read<ThemeModeCubit>().lightMode();
+BlocBuilder<ThemeModeCubit, ThemeMode>(builder: (context, mode) => ...)
+
+// lib/_shared/blocs/locale_cubit.dart  ← 阶段 2.14 (commit f219a19 fix)
+// 当前 Locale 状态 (en/zh/ar/es), 持久化到 THEME_BOX,
+// 驱动 MaterialApp.router.locale, 切换语言时整 app 重新渲染
+context.read<LocaleCubit>().setLocale(Locale('zh'));
+BlocBuilder<LocaleCubit, Locale>(builder: (context, locale) => ...)
+
+// L10n 调用方式 (单一来源 = intl gen-l10n, 详见 docs/I18N.md):
+import 'package:pxshe_app/_shared/l10n/gen/app_localizations.dart';
+final l10n = AppLocalizations.of(context);
+Text(l10n.layoutPageHome);
+```
+
+**禁止**:
+- ❌ 业务代码 `import 'package:easy_localization/...'` + `context.tr('xxx.yyy')` (已删, 见 AGENTS § 54)
+- ❌ 业务代码自己用 `Navigator.push` 切语言 — 必须走 `LocaleCubit` + `MaterialApp.router.locale`
+
 ---
 
 ## 4. SnackBar helpers (必用)
@@ -179,6 +203,7 @@ appLogger.e('API 调用失败', error: e, stackTrace: st);
 | 24 | **确认弹窗必须用 `ConfirmDialog.show()`**, 不用 `showDialog` 自己写 | 散落手写 |
 | 25 | **加载弹窗必须用 `LoadingDialog.show() + hide()` 配对** | 散落手写 |
 | 26 | **必须用 `appLogger` 不用 `print()`** (AGENTS §7) | 5 处 print 散落 |
+| 27 | **L10n 必须用 `intl` gen-l10n** + `AppLocalizations.of(context)!` (AGENTS §54, 见 [docs/I18N.md](./I18N.md)) | 26 处 `context.tr()` 调未配齐的 easy_localization → bug f219a19 |
 
 详见 [RECIPES.md](./RECIPES.md) 怎么用。
 

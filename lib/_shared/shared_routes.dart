@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,20 +11,22 @@ import 'features/landing/page/landing_page_loader.dart';
 import 'features/settings/page/settings_page.dart';
 import 'features/splash/page/splash_page.dart';
 import 'features/home/page/home_page.dart';
+import 'l10n/gen/app_localizations.dart';
 
 enum SharedNavTab implements NavTab { none, home, settings }
 
 List<AdaptiveDestination> getSharedNavTabs(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
   return <AdaptiveDestination>[
     AdaptiveDestination(
-      title: context.tr('layoutPage.home'),
+      title: l10n.layoutPageHome,
       icon: Icons.home,
       route: '/home',
       navTab: SharedNavTab.home,
       order: 1,
     ),
     AdaptiveDestination(
-      title: context.tr('layoutPage.settings'),
+      title: l10n.layoutPageSettings,
       icon: Icons.settings,
       route: '/settings',
       navTab: SharedNavTab.settings,

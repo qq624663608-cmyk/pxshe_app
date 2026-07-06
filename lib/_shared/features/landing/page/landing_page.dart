@@ -1,9 +1,9 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../l10n/gen/app_localizations.dart';
 import '../../../widgets/language_change_button.dart';
 import '../../../widgets/theme_mode_button.dart';
 
@@ -20,6 +20,7 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool useRow = ResponsiveBreakpoints.of(context).largerOrEqualTo(DESKTOP);
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -40,13 +41,13 @@ class LandingPage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            tooltip: context.tr('loginPage.signIn'),
+            tooltip: l10n.loginPageSignIn,
             onPressed: () => context.go("/login"),
             icon: const Icon(Icons.login),
           ),
           const SizedBox(width: 5),
           IconButton(
-            tooltip: context.tr('registerPage.signUp'),
+            tooltip: l10n.registerPageSignUp,
             onPressed: () => context.go("/register"),
             icon: const Icon(Icons.person_add),
           ),
@@ -70,7 +71,7 @@ class LandingPage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 25),
                     Text(
-                      "${context.tr('landingPage.welcomeTo')} Flutter Clean Starter",
+                      "${l10n.landingPageWelcomeTo} Flutter Clean Starter",
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).colorScheme.primary,
@@ -80,7 +81,7 @@ class LandingPage extends StatelessWidget {
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 700),
                       child: Text(
-                        context.tr('landingPage.paragraph1'),
+                        l10n.landingPageParagraph1,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16, wordSpacing: 1.5),
                       ),
@@ -105,12 +106,12 @@ class LandingPage extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(context.tr('landingPage.featuresTitle'),
+                                  Text(l10n.landingPageFeaturesTitle,
                                       style: TextStyle(
                                           fontSize: 20, fontWeight: FontWeight.bold)),
                                   SizedBox(height: 10),
                                   Text(
-                                    context.tr('landingPage.featuresDetails'),
+                                    l10n.landingPageFeaturesDetails,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
@@ -121,12 +122,12 @@ class LandingPage extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(context.tr('landingPage.techStackTitle'),
+                                  Text(l10n.landingPageTechStackTitle,
                                       style: TextStyle(
                                           fontSize: 20, fontWeight: FontWeight.bold)),
                                   SizedBox(height: 10),
                                   Text(
-                                    context.tr('landingPage.techStackDetails'),
+                                    l10n.landingPageTechStackDetails,
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
@@ -157,13 +158,13 @@ class LandingPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    context.tr('landingPage.structureTitle'),
+                                    l10n.landingPageStructureTitle,
                                     style: TextStyle(
                                         fontSize: 20, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
-                                    context.tr('landingPage.structureDetails'),
+                                    l10n.landingPageStructureDetails,
                                     style: TextStyle(height: 1.5),
                                   ),
                                 ],
@@ -175,12 +176,12 @@ class LandingPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    context.tr('landingPage.gettingStartedTitle'),
+                                    l10n.landingPageGettingStartedTitle,
                                     style: TextStyle(
                                         fontSize: 20, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 10),
-                                  Text(context.tr('landingPage.gettingStartedDetails')),
+                                  Text(l10n.landingPageGettingStartedDetails),
                                 ],
                               ),
                             ),
@@ -193,7 +194,7 @@ class LandingPage extends StatelessWidget {
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 700),
                       child: Text(
-                        context.tr('landingPage.paragraph2'),
+                        l10n.landingPageParagraph2,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16),
                       ),
@@ -202,18 +203,18 @@ class LandingPage extends StatelessWidget {
                     Center(
                       child: FilledButton.icon(
                         icon: const Icon(Icons.code),
-                        label: Text(context.tr('landingPage.viewOnGithub')),
+                        label: Text(l10n.landingPageViewOnGithub),
                         onPressed: _launchGitHub,
                       ),
                     ),
                     const SizedBox(height: 30),
                     Text(
-                      context.tr('landingPage.contributionsWelcome'),
+                      l10n.landingPageContributionsWelcome,
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      context.tr('landingPage.paragraph3'),
+                      l10n.landingPageParagraph3,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 50),

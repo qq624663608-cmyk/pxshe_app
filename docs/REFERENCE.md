@@ -100,8 +100,10 @@
 
 | 用 | 不用 |
 |---|---|
-| ✅ `easy_localization` ^3.x | ❌ `intl` (底层) |
+| ✅ `intl` gen-l10n (ARB) | ❌ `easy_localization` (重复, 已删 — bug f219a19) |
 | ✅ `flutter_localizations` | ❌ `i18n_extension` |
+
+详见 [docs/I18N.md](./I18N.md)。
 
 ---
 

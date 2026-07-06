@@ -5,6 +5,7 @@ import '../_core/constants.dart';
 import '../_core/di.dart';
 import '../_core/layout/adaptive_layout/adaptive_destination.dart';
 import '../_core/layout/adaptive_layout/navigation_service.dart';
+import 'blocs/locale_cubit.dart';
 import 'blocs/theme_mode_cubit.dart';
 import 'shared_routes.dart';
 
@@ -15,6 +16,7 @@ Future<void> registerSharedModule() async {
 
   //* inject blocs
   di.registerSingleton<ThemeModeCubit>(ThemeModeCubit(hive: di())..loadTheme(di()));
+  di.registerSingleton<LocaleCubit>(LocaleCubit(hive: di())..load());
   di.registerSingleton<NavigationService>(NavigationService());
 
   //* register routes and navigation tabs

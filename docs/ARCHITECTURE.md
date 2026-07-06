@@ -245,8 +245,8 @@ router.bindAuthBloc();  // 一次性绑定
 ### 6.6 启动时序 (硬约束)
 
 `initAfterRunApp(context)` **必须**在 `MaterialApp.router.builder` 里调, **不能**在
-`App.build` 顶层调 — 后者 context 未经 EasyLocalization wrap, `context.tr()` 抛
-`LocalizationNotFoundException`。
+`App.build` 顶层调 — 后者 context 未经 Localizations wrap, `AppLocalizations.of(context)`
+抛 null / 抛 `LocalizationsNotFoundException`。
 
 ```dart
 // lib/app/view/app.dart
@@ -255,14 +255,31 @@ Widget build(BuildContext context) {
   final router = di<AppRouter>();
   router.bindAuthBloc();
 
-  return MultiBlocProvider(...,
+  return MultiBlocProvider(
+    providers: [
+      BlocProvider<ThemeModeCubit>(create: (_) => di<ThemeModeCubit>()),
+      BlocProvider<LocaleCubit>(create: (_) => di<LocaleCubit>()),
+      BlocProvider<AuthBloc>(create: (_) => di<AuthBloc>()),
+    ],
     child: BlocBuilder<ThemeModeCubit, ThemeMode>(
       builder: (themeContext, themeMode) {
-        return MaterialApp.router(
-          routerConfig: router.router,
-          builder: (innerContext, child) {
-            AppModules.initAfterRunApp(innerContext);  // ← context 已 wrap
-            return child!;
+        return BlocBuilder<LocaleCubit, Locale>(
+          builder: (localeContext, locale) {
+            return MaterialApp.router(
+              routerConfig: router.router,
+              locale: locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              builder: (innerContext, child) {
+                AppModules.initAfterRunApp(innerContext);  // ← context 已 wrap
+                return child!;
+              },
+            );
           },
         );
       },
@@ -274,15 +291,24 @@ Widget build(BuildContext context) {
 | 步骤 | 调什么 | 在哪调 | 原因 |
 |---|---|---|---|
 | 1 | `Bootstrap.init()` | `main.dart` | 无 `BuildContext` 的初始化 (DI / HTTP / DB) |
-| 2 | `AppModules.initAfterRunApp(context)` | `MaterialApp.router.builder` | context 经过了 MaterialApp + EasyLocalization + Router |
+| 2 | `AppModules.initAfterRunApp(context)` | `MaterialApp.router.builder` | context 经过了 MaterialApp + Localizations + Router |
 | 3 | `router.bindAuthBloc()` | `App.build` | 绑 AuthBloc.stream → refreshListenable |
+| 4 | `MaterialApp.router` `locale:` | LocaleCubit state | 驱动整 app 的 l10n 切换 |
+| 5 | `MaterialApp.router` `localizationsDelegates` | AppLocalizations + Global* | **必填**, 缺一抛 LocalizationsNotFoundException |
+
+**Bug 教训 (f219a19)**: 模板 fork 时 `easy_localization` 没配齐 (没挂 widget / 没资源),
+`MaterialApp.localizationsDelegates` 没配 AppLocalizations.delegate → 真机启动后**红屏**
+`LocalizationNotFoundException`。修法: 改用 `intl` gen-l10n (ARB), 删
+`easy_localization`, 配 `localizationsDelegates` + `supportedLocales` + `LocaleCubit`。
+详见 [docs/I18N.md](./I18N.md) + AGENTS § 54。
 
 **Bug 教训 (3b1fca8)**: 把 `initAfterRunApp(context)` 放在 `App.build` 顶层 → context
-未经 EasyLocalization → `context.tr('layoutPage.profile')` 抛
-`LocalizationNotFoundException` → 红屏。修法: 移到 `MaterialApp.router.builder` 里,
-`initAfterRunApp` 幂等 (`navTabs.clear() + addAll()`), 每次 rebuild 调无副作用。
+未经 Localizations wrap → `AppLocalizations.of(context).layoutPageProfile` 抛 null →
+红屏。修法: 移到 `MaterialApp.router.builder` 里, `initAfterRunApp` 幂等
+(`navTabs.clear() + addAll()`), 每次 rebuild 调无副作用。
 
-**更早 Bug (1b9871a)**: 完全漏调 → navTabs 空 → `firstNavRoute()` fallback `/` → 死循环 → 404。
+**更早 Bug (1b9871a)**: 完全漏调 → navTabs 空 → `firstNavRoute()` fallback `/` →
+死循环 → 404。
 
 ---
 

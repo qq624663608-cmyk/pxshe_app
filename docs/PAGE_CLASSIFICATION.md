@@ -100,6 +100,22 @@ navTabs 列表由 `AppModules.initAfterRunApp(context)` 填充, 详见 `docs/ARC
 **跳转机制**: 通过 `GoRouter.refreshListenable` (绑定 `AuthBloc.stream`) 自动重跑守卫, 业务层**零** `router.go()` 调用。
 详见 `docs/ARCHITECTURE.md § 6.5`。
 
+### L10n (阶段 2.14 完成)
+
+`/login` + `/register` + `/home` + `/settings` + `/profile` (auth module 的 `getAuthNavTabs`) 全部用 `AppLocalizations.of(context)!` 取 tab 标题。**新增路由**必须 i18n-friendly:
+
+```dart
+// ✅ 正确
+final l10n = AppLocalizations.of(context);
+AdaptiveDestination(title: l10n.layoutPageHome, ...);
+
+// ❌ 错误 (违反 AGENTS §54)
+AdaptiveDestination(title: 'Home', ...);  // 硬编码
+AdaptiveDestination(title: context.tr('layoutPage.home'), ...);  // easy_localization API, 已删
+```
+
+加新 key 流程: `app_en.arb` → `app_zh.arb` → `flutter gen-l10n` → 调 `l10n.xxxCamelCase`。详见 `docs/I18N.md § 3.4`。
+
 ---
 
 *最后更新: 2026-07-06 — 阶段 2.5 ProfilePage 完成 (+ 阶段 2.1-2.4)*

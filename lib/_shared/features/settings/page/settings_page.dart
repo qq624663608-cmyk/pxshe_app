@@ -1,9 +1,10 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../_core/layout/page_layout.dart';
+import '../../../blocs/locale_cubit.dart';
 import '../../../blocs/theme_mode_cubit.dart';
+import '../../../l10n/gen/app_localizations.dart';
 import '../../../shared_routes.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -11,8 +12,9 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return PageLayout(
-      title: context.tr('settingsPage.title'),
+      title: l10n.settingsPageTitle,
       navTab: SharedNavTab.settings,
       page: Center(
         child: ConstrainedBox(
@@ -40,6 +42,7 @@ class ThemeModeSettingButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return InkWell(
       borderRadius: BorderRadius.circular(12),
@@ -53,9 +56,7 @@ class ThemeModeSettingButton extends StatelessWidget {
           color: Theme.of(context).colorScheme.primary,
         ),
         title: Text(
-          isDark
-              ? context.tr('settingsPage.lightMode')
-              : context.tr('settingsPage.darkMode'),
+          isDark ? l10n.settingsPageLightMode : l10n.settingsPageDarkMode,
           style: Theme.of(context).textTheme.titleMedium,
         ),
         trailing: Switch(
@@ -75,28 +76,33 @@ class LanguageSettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentLocale = context.locale;
+    final l10n = AppLocalizations.of(context);
+    final currentLocale = Localizations.localeOf(context);
 
     return ListTile(
       leading: const Icon(Icons.language, color: Colors.teal),
       title: Text(
-        context.tr('settingsPage.language'),
+        l10n.settingsPageLanguage,
         style: Theme.of(context).textTheme.titleMedium,
       ),
-      trailing: DropdownButton<Locale>(
-        value: currentLocale,
-        underline: const SizedBox(),
-        onChanged: (Locale? newLocale) {
-          if (newLocale != null) {
-            context.setLocale(newLocale);
-          }
+      trailing: BlocBuilder<LocaleCubit, Locale>(
+        builder: (context, locale) {
+          return DropdownButton<Locale>(
+            value: locale,
+            underline: const SizedBox(),
+            onChanged: (Locale? newLocale) {
+              if (newLocale != null) {
+                context.read<LocaleCubit>().setLocale(newLocale);
+              }
+            },
+            items: const [
+              DropdownMenuItem(value: Locale('en'), child: Text('English 🇺🇸')),
+              DropdownMenuItem(value: Locale('ar'), child: Text('العربية 🇸🇦')),
+              DropdownMenuItem(value: Locale('zh'), child: Text('中文 🇨🇳')),
+              DropdownMenuItem(value: Locale('es'), child: Text('Español 🇪🇸')),
+            ],
+          );
         },
-        items: const [
-          DropdownMenuItem(value: Locale('en'), child: Text('English 🇺🇸')),
-          DropdownMenuItem(value: Locale('ar'), child: Text('العربية 🇸🇦')),
-          DropdownMenuItem(value: Locale('zh'), child: Text('中文 🇨🇳')),
-          DropdownMenuItem(value: Locale('es'), child: Text('Español 🇪🇸')),
-        ],
       ),
     );
   }
