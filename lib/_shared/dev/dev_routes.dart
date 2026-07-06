@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dev_menu_page.dart';
+
 /// One dev menu entry. Public so the dev page can build list tiles.
 class DevRouteEntry {
   const DevRouteEntry({

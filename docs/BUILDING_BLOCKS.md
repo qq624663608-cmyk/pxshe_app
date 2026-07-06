@@ -145,6 +145,12 @@ if (const bool.fromEnvironment('dart.vm.product') == false)
 // 业务域 / IM 域 / 认证域 / 错误域 / 阶段 3 占位
 ```
 
+**文件关系** (`_shared/dev/` 内部):
+- `dev_routes.dart` → 依赖 `dev_menu_page.dart` (导出 `/dev` 路由)
+- `dev_menu_page.dart` → 依赖 `dev_routes.dart` (读 `devRouteEntries` 列表)
+
+→ **两个文件互相 import 对方,无环**。`dev_routes.dart` 必须 import `dev_menu_page.dart` (否则 `DevMenuPage` 未定义);`dev_menu_page.dart` 必须 import `dev_routes.dart` (否则 `devRouteEntries` 未定义)。两者依赖是**单向 cross**: routes 引用 page, page 引用 entries, 不存在循环 import。
+
 **用途**:
 - 阶段 2 收尾: 手动测试每个路由 (e2e 验证)
 - 阶段 3 业务模块: 测试新增的 universe 路由
